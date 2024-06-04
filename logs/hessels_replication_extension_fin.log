@@ -1,0 +1,2661 @@
+------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\new_data\hessels_replication_extension_fin.log
+  log type:  text
+ opened on:  27 May 2024, 08:32:53
+
+. //HILDA DATA SETUP
+. hildasetup, data("C:\original_data") saving("C:\new_data")  file(Hilda_Replication) var(xwaveid hhrpid wsfei bif
+> ip bifin esempdt jbmo62 jbhruc edhigh edhists jomfw jomls jomfd hgage hgsex mrcurr gh1 fmmsch fmmpsq fmfsch fmfp
+> sq hhstate ancob ctbds ctwps ctsds ghgh ghph ghmh jbmsall losat) rel(20) master(yrenter yrleft) lw(wlea_t)
+
+Data management started
+Wave a completed
+Wave b completed
+Wave c completed
+Wave d completed
+Wave e completed
+Wave f completed
+Wave g completed
+Wave h completed
+Wave i completed
+Wave j completed
+Wave k completed
+Wave l completed
+Wave m completed
+Wave n completed
+Wave o completed
+Wave p completed
+Wave q completed
+Wave r completed
+Wave s completed
+Wave t completed
+Master file completed
+Longitudinal Weights file completed
+Data management finished
+
+The new HILDA longitudinal file Hilda_Replication.dta has been saved in the directory:
+C:\new_data
+
+. 
+. 
+. * IDENTIFIER
+. // xwaveid - unique person identifier across all waves
+. // hhrpid - random person identifier
+. 
+. * DEPENDENT VARIABLES
+. // wsfei - financial year gross wages & salary ($) [imputed] [weighted topcode]
+. // bifip - financial year business income ($) [imputed] Positive values [weighted topcode]
+. // bifin - financial year business income ($) [imputed] Negative values
+. 
+. * INDEPENDENT VARIABLES
+. // esempdt - current employment status (detailed)
+. // jbmo62 - occupation 2-digit ANZSCO 2006
+. // jbhruc - hours per week usually worked in all jobs
+. // edhigh - highest education level achieved
+. // edhists - highest year of school completed (excludes equivalents obtained post-sc)
+. // jomfw - "I have a lot of freedom to decide when I do my work, range from 1 to 7"
+. // jomls - "I have a lot of say about what happens on my job, range from 1 to 7"
+. // jomfd - "I have a lot of freedom to decide how I do my own work, range from 1 to 7"
+. //_losat Satisfaction - How satisfied are you with your life 1 to 10
+. //jbmsall Overall job satisfaction 1 to 10
+. * CONTROL VARIABLES
+. // hgage - age (based on each wave)
+. // hgsex - sex (gender)
+. // mrcurr - marital status 
+. // gh1 - self-assessed health
+. // fmmsch - how much schooling mother completed
+. // fmmpsq - mother completed an educational qualification after leaving school
+. // fmfsch - how much schooling father completed
+. // fmfpsq - father completed an educational qualification after leaving school
+. // hhstate - geographical location
+. // ancob - history: country of birth
+. // ctbds - backwards digits score
+. // ctbds - word pronunciation score (25-item NART)
+. // ctsds - symbol-digit modalities score
+. 
+. 
+. ** DATA CLEANING
+. //================================================================
+. * DEPENDENT VARIABLES
+. 
+. // generate dependent variable 'Gross_Labor_Income'
+. gen Gross_Labor_Income = wsfei + bifip - bifin
+
+. drop wsfei bifip bifin
+
+. 
+. // dropping observations with negative & zero values from 'Gross_Labor_Income'
+. drop if Gross_Labor_Income <= 0
+(190,667 observations deleted)
+
+. 
+. // logarithmic transformation of 'Gross_Labor_Income'
+. gen Log_Gross_Labor_Income = log(Gross_Labor_Income)
+
+. drop Gross_Labor_Income
+
+. //=====================================================================
+. * INDEPENDENT VARIABLES
+. 
+. // 'Entrepreneur' variable based on employment status
+. drop if esempdt == -10 | esempdt == -4 | esempdt == -1 | esempdt == 6
+(34,173 observations deleted)
+
+. gen Entrepreneur = .
+(185,818 missing values generated)
+
+. replace Entrepreneur = 0 if esempdt == 1
+(159,014 real changes made)
+
+. replace Entrepreneur = 2 if esempdt == 2 | esempdt == 4
+(10,742 real changes made)
+
+. replace Entrepreneur = 3 if esempdt == 3 | esempdt == 5
+(16,062 real changes made)
+
+. label define EntrepreneurLabel 0 "[0] Wageworkers" 2 "[2] Entrepreneurs with employees" 3 "[3] Entrepreneurs wit
+> hout employees"
+
+. label values Entrepreneur EntrepreneurLabel
+
+. drop esempdt
+
+. 
+. gen EntrepreneurGroup = (Entrepreneur == 2 | Entrepreneur == 3)
+
+. label variable EntrepreneurGroup "Entrepreneur with or without employees"
+
+. label define EntrepreneurGroupLabel 0 "[0]Non-Entrepreneur" 1 "[1]Entrepreneur"
+
+. label values EntrepreneurGroup EntrepreneurGroupLabel
+
+. 
+. // Annual hours for all jobs 
+. gen Annual_Hours_All_Jobs = jbhruc * 52
+
+. drop if Annual_Hours_All_Jobs <= 300
+(4,632 observations deleted)
+
+. drop Annual_Hours_All_Jobs
+
+. 
+. // Occupation_Classification variable based on 2-digit ANZSCO 2006
+. gen Occupation_Classification = jbmo62
+
+. drop if jbmo62 == 12
+(2,709 observations deleted)
+
+. drop jbmo62
+
+. 
+. //Education Variable
+. drop if edhists == -7 | edhists == -4 | edhists == -3 | edhists == -1
+(183 observations deleted)
+
+. gen Education = .
+(178,294 missing values generated)
+
+. 
+. replace Education = 8 if edhists == 5 | edhists == 6 | edhists == 7 | edhists == 8 | edhists == 9
+(3,394 real changes made)
+
+. replace Education = 9 if edhists == 4
+(7,078 real changes made)
+
+. replace Education = 10 if edhists == 3
+(37,715 real changes made)
+
+. replace Education = 11 if edhists == 2
+(22,599 real changes made)
+
+. replace Education = 12 if edhists == 1 | edhigh == 4 | edhigh == 5
+(138,931 real changes made)
+
+. replace Education = 15 if edhigh == 3
+(30,943 real changes made)
+
+. replace Education = 16 if edhigh == 2
+(11,757 real changes made)
+
+. replace Education = 17 if edhigh == 1
+(10,562 real changes made)
+
+. 
+. drop edhigh
+
+. drop edhists
+
+. 
+. // Job Control variable
+. drop if inlist(jomfw, -8, -6, -5, -4, -1)
+(22,201 observations deleted)
+
+. drop if inlist(jomls, -8, -6, -5, -4, -1)
+(186 observations deleted)
+
+. drop if inlist(jomfd, -8, -6, -5, -4, -1)
+(176 observations deleted)
+
+. gen Job_Control = (jomfw + jomls + jomfd) / 3
+
+. 
+. // calculate the cronbach's alpha for 'jomfw', 'jomls', 'jomfd'
+. alpha jomfw jomls jomfd
+
+Test scale = mean(unstandardized items)
+
+Average interitem covariance:     2.078277
+Number of items in the scale:            3
+Scale reliability coefficient:      0.8313
+
+. 
+. // standardize 'Job_Control'
+. egen mean_Job_Control = mean(Job_Control)
+
+. egen sd_Job_Control = sd(Job_Control)
+
+. gen std_Job_Control = (Job_Control - mean_Job_Control) / sd_Job_Control
+
+. drop mean_Job_Control sd_Job_Control Job_Control
+
+. rename std_Job_Control Job_Control
+
+. 
+. drop jomfw jomls jomfd
+
+. summarize Job_Control Education
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ Job_Control |    155,731    5.47e-08           1  -2.027196   1.767544
+   Education |    155,731    12.75586    2.117938          8         17
+
+. * CONTROL VARIABLES
+. 
+. // filter by 'wave' for years 2005 to 2017
+. gen Year = wave + 2000
+
+. keep if Year >= 2005 & Year <= 2017
+(53,523 observations deleted)
+
+. 
+. // filter by 'hgage' for individuals between 16 and 64 years
+. gen Age = hgage
+
+. keep if Age >= 16 & Age <= 64
+(3,001 observations deleted)
+
+. drop hgage
+
+. 
+. // generate variable 'Gender'
+. recode hgsex (2 = 0) (1 = 1)
+(48,687 changes made to hgsex)
+
+. gen Gender = hgsex
+
+. drop hgsex
+
+. 
+. // generate variable 'Married'
+. drop if mrcurr == -4 | mrcurr == -3
+(5 observations deleted)
+
+. recode mrcurr (1 2 = 1) (3/6 = 0) 
+(50,293 changes made to mrcurr)
+
+. gen Married = mrcurr
+
+. drop mrcurr
+
+. 
+. // generate variable 'Healthy'
+. drop if gh1 == -5 | gh1 == -4
+(996 observations deleted)
+
+. recode gh1 (1 2 3 = 0) (4 5 = 1)
+(98,206 changes made to gh1)
+
+. gen Healthy = gh1
+
+. drop gh1
+
+. 
+. // generate variable 'Education_Father'
+. drop if fmfsch == -7 | fmfsch == -4 | fmfsch == -3
+(9,161 observations deleted)
+
+. gen Education_Father = .
+(89,045 missing values generated)
+
+. replace Education_Father = 1 if fmfsch == 1 // None
+(631 real changes made)
+
+. replace Education_Father = 2 if fmfsch == 2 // Primary 
+(9,992 real changes made)
+
+. replace Education_Father = 3 if fmfsch == 3 // Some secondary school
+(40,385 real changes made)
+
+. replace Education_Father = 4 if fmfsch == 4 // Secondary low
+(7,719 real changes made)
+
+. replace Education_Father = 5 if fmfsch == 5 // Secondary high
+(30,318 real changes made)
+
+. replace Education_Father = 6 if fmfpsq == 1 // Post-secondary
+(52,646 real changes made)
+
+. drop fmfsch fmfpsq
+
+. 
+. label define eduFatherLabel 1 "[1] None" 2 "[2] Primary" 3 "[3] Some secondary school" 4 "[4] Secondary low" 5 "
+> [5] Secondary high" 6 "[6] Post-secondary"
+
+. label values Education_Father eduFatherLabel
+
+. 
+. 
+. // generate variable 'Education_Mother'
+. drop if fmmsch == -7 | fmmsch == -4 | fmmsch == -3
+(1,919 observations deleted)
+
+. gen Education_Mother = .
+(87,126 missing values generated)
+
+. replace Education_Mother = 1 if fmmsch == 1 // None
+(812 real changes made)
+
+. replace Education_Mother = 2 if fmmsch == 2 // Primary
+(7,474 real changes made)
+
+. replace Education_Mother = 3 if fmmsch == 3 // Some secondary school
+(37,768 real changes made)
+
+. replace Education_Mother = 4 if fmmsch == 4 // Secondary low
+(10,597 real changes made)
+
+. replace Education_Mother = 5 if fmmsch == 5 // Secondary high
+(30,475 real changes made)
+
+. replace Education_Mother = 6 if fmmpsq == 1 // Post-secondary
+(36,821 real changes made)
+
+. drop fmmsch fmmpsq
+
+. 
+. label define eduMotherLabel 1 "[1] None" 2 "[2] Primary" 3 "[3] Some secondary-school" 4 "[4] Secondary-low" 5 "
+> [5] Secondary-high" 6 "[6] Post-secondary"
+
+. label values Education_Mother eduFatherLabel
+
+. 
+. // generate variable 'Living_In_Territory'
+. gen Living_In_Territory = hhstate
+
+. drop hhstate
+
+. label define TerritoryLabel 1 "[1] NSW" 2 "[2] VIC" 3 "[3] QLD" 4 "[4] SA" 5 "[5] WA" 6 "[6] TAS" 7 "[7] NT" 8 "
+> [8] ACT"
+
+. label values Living_In_Territory TerritoryLabel
+
+. 
+. // Born in aus
+. drop if ancob == -10 | ancob == -4
+(9 observations deleted)
+
+. gen Born_In_Australia = (ancob == 1101)
+
+. drop ancob
+
+. 
+. // 'Hours_Worked_Per_Week' variable
+. gen Hours_Worked_Per_Week = jbhruc
+
+. drop jbhruc
+
+. 
+. * Calculate average scores
+. bysort xwaveid: egen mean_ctbds = mean(ctbds)
+(12,637 missing values generated)
+
+. bysort xwaveid: egen mean_ctwps = mean(ctwps)
+(12,637 missing values generated)
+
+. bysort xwaveid: egen mean_ctsds = mean(ctsds)
+(12,637 missing values generated)
+
+. 
+. * Remove age and education effects
+. regress mean_ctbds Age i.Education
+
+      Source |       SS           df       MS      Number of obs   =    74,480
+-------------+----------------------------------   F(8, 74471)     =    284.39
+       Model |  7808.42049         8  976.052561   Prob > F        =    0.0000
+    Residual |  255590.385    74,471   3.4320794   R-squared       =    0.0296
+-------------+----------------------------------   Adj R-squared   =    0.0295
+       Total |  263398.805    74,479  3.53655132   Root MSE        =    1.8526
+
+------------------------------------------------------------------------------
+  mean_ctbds | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         Age |  -.0100818   .0005562   -18.13   0.000    -.0111719   -.0089917
+             |
+   Education |
+          9  |   .5399211   .1131297     4.77   0.000     .3181873    .7616548
+         10  |   .9445098   .0993642     9.51   0.000     .7497565    1.139263
+         11  |   .9632797   .1008893     9.55   0.000     .7655372    1.161022
+         12  |    1.17985   .0969703    12.17   0.000     .9897883    1.369911
+         15  |   1.627318   .0976874    16.66   0.000     1.435851    1.818785
+         16  |   1.568159   .0994638    15.77   0.000      1.37321    1.763107
+         17  |    1.91003   .0997578    19.15   0.000     1.714505    2.105555
+             |
+       _cons |   4.019285   .1000062    40.19   0.000     3.823273    4.215297
+------------------------------------------------------------------------------
+
+. predict residuals_ctbds, residuals
+(12,637 missing values generated)
+
+. 
+. regress mean_ctwps Age i.Education
+
+      Source |       SS           df       MS      Number of obs   =    74,480
+-------------+----------------------------------   F(8, 74471)     =   1007.59
+       Model |  294590.338         8  36823.7923   Prob > F        =    0.0000
+    Residual |  2721650.12    74,471  36.5464425   R-squared       =    0.0977
+-------------+----------------------------------   Adj R-squared   =    0.0976
+       Total |  3016240.46    74,479  40.4978646   Root MSE        =    6.0454
+
+------------------------------------------------------------------------------
+  mean_ctwps | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         Age |   .0608606   .0018149    33.53   0.000     .0573034    .0644178
+             |
+   Education |
+          9  |   2.302555    .369165     6.24   0.000     1.578993    3.026117
+         10  |   4.607568   .3242453    14.21   0.000     3.972049    5.243087
+         11  |   6.085585    .329222    18.48   0.000     5.440311    6.730859
+         12  |   6.705619   .3164337    21.19   0.000      6.08541    7.325827
+         15  |    9.26496   .3187738    29.06   0.000     8.640165    9.889755
+         16  |   9.822922   .3245703    30.26   0.000     9.186766    10.45908
+         17  |   10.43274   .3255298    32.05   0.000     9.794705    11.07078
+             |
+       _cons |   3.474487   .3263405    10.65   0.000     2.834861    4.114113
+------------------------------------------------------------------------------
+
+. predict residuals_ctwps, residuals
+(12,637 missing values generated)
+
+. 
+. regress mean_ctsds Age i.Education
+
+      Source |       SS           df       MS      Number of obs   =    74,480
+-------------+----------------------------------   F(8, 74471)     =    523.81
+       Model |  1078224.61         8  134778.076   Prob > F        =    0.0000
+    Residual |    19161686    74,471  257.303998   R-squared       =    0.0533
+-------------+----------------------------------   Adj R-squared   =    0.0532
+       Total |  20239910.7    74,479  271.753255   Root MSE        =    16.041
+
+------------------------------------------------------------------------------
+  mean_ctsds | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         Age |  -.2524281   .0048157   -52.42   0.000    -.2618667   -.2429894
+             |
+   Education |
+          9  |   1.908077   .9795378     1.95   0.051     -.011813    3.827967
+         10  |   5.388015   .8603485     6.26   0.000     3.701736    7.074294
+         11  |   8.428498   .8735537     9.65   0.000     6.716337    10.14066
+         12  |   8.216504   .8396212     9.79   0.000      6.57085    9.862158
+         15  |   11.35954   .8458305    13.43   0.000     9.701713    13.01736
+         16  |   11.37411   .8612107    13.21   0.000     9.686138    13.06208
+         17  |   12.01879   .8637567    13.91   0.000     10.32583    13.71175
+             |
+       _cons |   50.18987   .8659077    57.96   0.000      48.4927    51.88705
+------------------------------------------------------------------------------
+
+. predict residuals_ctsds, residuals
+(12,637 missing values generated)
+
+. 
+. * Standardize residuals
+. egen std_res_ctbds = std(residuals_ctbds)
+(12,637 missing values generated)
+
+. egen std_res_ctwps = std(residuals_ctwps)
+(12,637 missing values generated)
+
+. egen std_res_ctsds = std(residuals_ctsds)
+(12,637 missing values generated)
+
+. 
+. * Factor analysis
+. *gen Cognitive_Ability = (std_res_ctwps + std_res_ctsds) / 2
+. factor std_res_ctbds std_res_ctwps std_res_ctsds, factors(1)
+(obs=74,480)
+
+Factor analysis/correlation                      Number of obs    =     74,480
+    Method: principal factors                    Retained factors =          1
+    Rotation: (unrotated)                        Number of params =          3
+
+    --------------------------------------------------------------------------
+         Factor  |   Eigenvalue   Difference        Proportion   Cumulative
+    -------------+------------------------------------------------------------
+        Factor1  |      1.12334      1.16018            1.3088       1.3088
+        Factor2  |     -0.03684      0.19134           -0.0429       1.2658
+        Factor3  |     -0.22818            .           -0.2658       1.0000
+    --------------------------------------------------------------------------
+    LR test: independent vs. saturated:  chi2(3)  = 4.2e+04 Prob>chi2 = 0.0000
+
+Factor loadings (pattern matrix) and unique variances
+
+    ---------------------------------------
+        Variable |  Factor1 |   Uniqueness 
+    -------------+----------+--------------
+    std_res_~bds |   0.3310 |      0.8904  
+    std_res_c~ps |   0.7181 |      0.4843  
+    std_res_~sds |   0.7058 |      0.5019  
+    ---------------------------------------
+
+. predict Cognitive_Ability
+(option regression assumed; regression scoring)
+
+Scoring coefficients (method = regression)
+
+    ------------------------
+        Variable |  Factor1 
+    -------------+----------
+    std_res_~bds |  0.12545 
+    std_res_c~ps |  0.43230 
+    std_res_~sds |  0.40986 
+    ------------------------
+
+
+. 
+. // Drop variables not use
+. drop wlea_t yrenter yrleft ctbds ctwps ctsds mean_ctbds mean_ctwps mean_ctsds residuals_ctbds residuals_ctwps re
+> siduals_ctsds std_res_ctbds std_res_ctwps std_res_ctsds
+
+. 
+. * Preparations
+. 
+. destring xwaveid, replace
+xwaveid: all characters numeric; replaced as long
+
+. destring hhrpid, replace
+hhrpid: all characters numeric; replaced as long
+
+. 
+. // Table 1
+. // Overall descriptive statistics
+. preserve
+
+. asdoc sum Log_Gross_Labor_Income Education Job_Control Cognitive_Ability Age Hours_Worked_Per_Week Gender Marrie
+> d Healthy i.Education_Father i.Education_Mother i.Living_In_Territory Born_In_Australia, save(Descriptive_Stats_
+> All.doc) replace
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+Log_Gross_~e |     87,117    10.65301    .9571242          0   14.31154
+   Education |     87,117    12.90101    2.082652          8         17
+ Job_Control |     87,117     .009447    .9884517  -2.027196   1.767544
+Cognitive_~y |     74,480    2.05e-10    .8007682  -3.467066   2.073965
+         Age |     87,117    38.97288    12.86252         16         64
+-------------+---------------------------------------------------------
+Hours_Work~k |     87,117    37.42209    13.67015          6        144
+      Gender |     87,117    .5017046          .5          0          1
+     Married |     87,117     .684344    .4647793          0          1
+     Healthy |     87,117    .0909352    .2875186          0          1
+             |
+Educat~ather |
+   [1] None  |     87,117    .0057279    .0754665          0          1
+-------------+---------------------------------------------------------
+[2] Primary  |     87,117     .083164    .2761316          0          1
+[3] Some ..  |     87,117    .2180171    .4129015          0          1
+[4] Secon..  |     87,117    .0337592    .1806098          0          1
+[5] Secon..  |     87,117    .0664623      .24909          0          1
+[6] Post-..  |     87,117    .5928694    .4913024          0          1
+-------------+---------------------------------------------------------
+             |
+Educat~other |
+   [1] None  |     87,117    .0089076    .0939591          0          1
+[2] Primary  |     87,117    .0777805    .2678273          0          1
+[3] Some ..  |     87,117    .3160577    .4649384          0          1
+[4] Secon..  |     87,117    .0694813    .2542722          0          1
+[5] Secon..  |     87,117    .1052148    .3068318          0          1
+-------------+---------------------------------------------------------
+[6] Post-..  |     87,117    .4225582    .4939692          0          1
+             |
+Living_In_~y |
+    [1] NSW  |     87,117    .2891743    .4533816          0          1
+    [2] VIC  |     87,117    .2553692    .4360711          0          1
+    [3] QLD  |     87,117    .2120711    .4087773          0          1
+     [4] SA  |     87,117     .086975       .2818          0          1
+-------------+---------------------------------------------------------
+     [5] WA  |     87,117    .0914862    .2883009          0          1
+    [6] TAS  |     87,117    .0297187     .169811          0          1
+     [7] NT  |     87,117    .0089305     .094079          0          1
+    [8] ACT  |     87,117     .026275    .1599529          0          1
+             |
+Born_In_Au~a |     87,117    .8076495    .3941492          0          1
+Click to Open File:  Descriptive_Stats_All.doc
+
+. restore
+
+. 
+. // Create subsets for each group
+. preserve
+
+. keep if Entrepreneur == 3
+(81,066 observations deleted)
+
+. asdoc sum Log_Gross_Labor_Income Education Job_Control Cognitive_Ability Age Hours_Worked_Per_Week Gender Marrie
+> d Healthy i.Education_Father i.Education_Mother i.Living_In_Territory Born_In_Australia, save(Descriptive_Stats_
+> without.doc) replace
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+Log_Gross_~e |      6,051    10.44957    1.115832          0   13.74239
+   Education |      6,051    12.71889     2.07276          8         17
+ Job_Control |      6,051    .9127709    .7870124  -2.027196   1.767544
+Cognitive_~y |      4,991   -.0065844    .7962085  -3.143394   1.443485
+         Age |      6,051    44.48504    11.26804         16         64
+-------------+---------------------------------------------------------
+Hours_Work~k |      6,051    37.89465    15.91526          6        140
+      Gender |      6,051    .6321269    .4822664          0          1
+     Married |      6,051    .7712775    .4200449          0          1
+     Healthy |      6,051    .0998182    .2997822          0          1
+             |
+Educat~ather |
+   [1] None  |      6,051    .0071063    .0840055          0          1
+-------------+---------------------------------------------------------
+[2] Primary  |      6,051    .1074203    .3096724          0          1
+[3] Some ..  |      6,051    .2259131    .4182168          0          1
+[4] Secon..  |      6,051     .027103    .1623969          0          1
+[5] Secon..  |      6,051    .0542059    .2264423          0          1
+[6] Post-..  |      6,051    .5782515    .4938795          0          1
+-------------+---------------------------------------------------------
+             |
+Educat~other |
+   [1] None  |      6,051    .0123946    .1106483          0          1
+[2] Primary  |      6,051    .0890762    .2848772          0          1
+[3] Some ..  |      6,051    .3108577    .4628829          0          1
+[4] Secon..  |      6,051    .0697405    .2547303          0          1
+[5] Secon..  |      6,051    .1150223    .3190752          0          1
+-------------+---------------------------------------------------------
+[6] Post-..  |      6,051    .4029086    .4905232          0          1
+             |
+Living_In_~y |
+    [1] NSW  |      6,051    .2943315    .4557793          0          1
+    [2] VIC  |      6,051    .2551644    .4359896          0          1
+    [3] QLD  |      6,051    .2199636     .414256          0          1
+     [4] SA  |      6,051     .086432    .2810241          0          1
+-------------+---------------------------------------------------------
+     [5] WA  |      6,051    .0988266    .2984538          0          1
+    [6] TAS  |      6,051    .0175178    .1312011          0          1
+     [7] NT  |      6,051    .0099157     .099091          0          1
+    [8] ACT  |      6,051    .0178483    .1324108          0          1
+             |
+Born_In_Au~a |      6,051    .7522724    .4317285          0          1
+Click to Open File:  Descriptive_Stats_without.doc
+
+. restore
+
+. 
+. preserve
+
+. keep if Entrepreneur == 2
+(82,883 observations deleted)
+
+. asdoc sum Log_Gross_Labor_Income Education Job_Control Cognitive_Ability Age Hours_Worked_Per_Week Gender Marrie
+> d Healthy i.Education_Father i.Education_Mother i.Living_In_Territory Born_In_Australia, save(Descriptive_Stats_
+> with.doc) replace
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+Log_Gross_~e |      4,234     10.9945    .9422613   2.197225   14.31154
+   Education |      4,234    13.00567    2.089418          8         17
+ Job_Control |      4,234     1.06976    .6584068  -2.027196   1.767544
+Cognitive_~y |      3,643    .0167106    .7612514  -3.135051   1.666574
+         Age |      4,234     45.6821    10.04596         16         64
+-------------+---------------------------------------------------------
+Hours_Work~k |      4,234    45.71918    15.07276          6        130
+      Gender |      4,234    .6953236    .4603246          0          1
+     Married |      4,234     .890411    .3124137          0          1
+     Healthy |      4,234    .0774681    .2673643          0          1
+             |
+Educat~ather |
+   [1] None  |      4,234    .0118092    .1080392          0          1
+-------------+---------------------------------------------------------
+[2] Primary  |      4,234    .1225791    .3279922          0          1
+[3] Some ..  |      4,234    .2179972    .4129342          0          1
+[4] Secon..  |      4,234    .0403873    .1968892          0          1
+[5] Secon..  |      4,234    .0581011    .2339621          0          1
+[6] Post-..  |      4,234    .5491261    .4976395          0          1
+-------------+---------------------------------------------------------
+             |
+Educat~other |
+   [1] None  |      4,234    .0214927    .1450369          0          1
+[2] Primary  |      4,234    .1029759    .3039633          0          1
+[3] Some ..  |      4,234    .3401039    .4737998          0          1
+[4] Secon..  |      4,234    .0784128    .2688519          0          1
+[5] Secon..  |      4,234    .0982522    .2976906          0          1
+-------------+---------------------------------------------------------
+[6] Post-..  |      4,234    .3587624     .479694          0          1
+             |
+Living_In_~y |
+    [1] NSW  |      4,234    .2905054    .4540492          0          1
+    [2] VIC  |      4,234    .2531885    .4348893          0          1
+    [3] QLD  |      4,234    .1858762    .3890527          0          1
+     [4] SA  |      4,234    .0932924    .2908761          0          1
+-------------+---------------------------------------------------------
+     [5] WA  |      4,234    .1287199    .3349292          0          1
+    [6] TAS  |      4,234    .0250354    .1562511          0          1
+     [7] NT  |      4,234    .0059046    .0766231          0          1
+    [8] ACT  |      4,234    .0174776    .1310578          0          1
+             |
+Born_In_Au~a |      4,234    .7626358    .4255176          0          1
+Click to Open File:  Descriptive_Stats_with.doc
+
+. restore
+
+. 
+. preserve
+
+. keep if Entrepreneur == 0
+(10,285 observations deleted)
+
+. asdoc sum Log_Gross_Labor_Income Education Job_Control Cognitive_Ability Age Hours_Worked_Per_Week Gender Marrie
+> d Healthy i.Education_Father i.Education_Mother i.Living_In_Territory Born_In_Australia, save(Descriptive_Stats_
+> worker.doc) replace
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+Log_Gross_~e |     76,832    10.65021    .9391835   2.833213   13.69725
+   Education |     76,832    12.90958    2.082293          8         17
+ Job_Control |     76,832   -.1201264    .9445424  -2.027196   1.767544
+Cognitive_~y |     65,846   -.0004254    .8032412  -3.467066   2.073965
+         Age |     76,832    38.16903    12.90402         16         64
+-------------+---------------------------------------------------------
+Hours_Work~k |     76,832    36.92765    13.24276          6        144
+      Gender |     76,832    .4807632    .4996331          0          1
+     Married |     76,832    .6661417    .4715929          0          1
+     Healthy |     76,832    .0909777    .2875793          0          1
+             |
+Educat~ather |
+   [1] None  |     76,832    .0052843     .072501          0          1
+-------------+---------------------------------------------------------
+[2] Primary  |     76,832    .0790816    .2698679          0          1
+[3] Some ..  |     76,832    .2173964    .4124772          0          1
+[4] Secon..  |     76,832    .0339182    .1810197          0          1
+[5] Secon..  |     76,832    .0678884    .2515559          0          1
+[6] Post-..  |     76,832    .5964312    .4906161          0          1
+-------------+---------------------------------------------------------
+             |
+Educat~other |
+   [1] None  |     76,832    .0079394    .0887495          0          1
+[2] Primary  |     76,832    .0755024     .264202          0          1
+[3] Some ..  |     76,832    .3151421    .4645755          0          1
+[4] Secon..  |     76,832    .0689687    .2534025          0          1
+[5] Secon..  |     76,832    .1048261    .3063312          0          1
+-------------+---------------------------------------------------------
+[6] Post-..  |     76,832    .4276213    .4947368          0          1
+             |
+Living_In_~y |
+    [1] NSW  |     76,832    .2886948    .4531587          0          1
+    [2] VIC  |     76,832    .2555055    .4361478          0          1
+    [3] QLD  |     76,832    .2128931    .4093553          0          1
+     [4] SA  |     76,832    .0866696    .2813521          0          1
+-------------+---------------------------------------------------------
+     [5] WA  |     76,832    .0888562    .2845379          0          1
+    [6] TAS  |     76,832    .0309376    .1731499          0          1
+     [7] NT  |     76,832    .0090197    .0945433          0          1
+    [8] ACT  |     76,832    .0274235    .1633149          0          1
+             |
+Born_In_Au~a |     76,832    .8144914    .3887122          0          1
+Click to Open File:  Descriptive_Stats_worker.doc
+
+. restore
+
+. 
+. 
+. 
+. * Table 2
+. 
+. // Setting the panel data structure
+. xtset hhrpid Year
+
+Panel variable: hhrpid (unbalanced)
+ Time variable: Year, 2005 to 2017, but with gaps
+         Delta: 1 unit
+
+. 
+. // Panel A: Cognitive ability not included
+. 
+. gen EducationEntrepreneur = Education*EntrepreneurGroup
+
+. gen AbilityEntrepreneur = Cognitive_Ability*EntrepreneurGroup
+(12,637 missing values generated)
+
+. 
+. // Entrepreneurs (RE) 
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Age Gender Married Healthy Educat
+> ion_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week if EntrepreneurGroup == 
+> 1, re
+
+Random-effects GLS regression                   Number of obs     =     10,285
+Group variable: hhrpid                          Number of groups  =      9,158
+
+R-squared:                                      Obs per group:
+     Within  = 0.1703                                         min =          1
+     Between = 0.1537                                         avg =        1.1
+     Overall = 0.1537                                         max =          4
+
+                                                Wald chi2(10)     =          .
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =          .
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .1180848   .0049665    23.78   0.000     .1083507     .127819
+    EntrepreneurGroup |          0  (omitted)
+EducationEntrepreneur |          0  (omitted)
+                  Age |   .0029431   .0009754     3.02   0.003     .0010313    .0048548
+               Gender |   .2709673   .0224434    12.07   0.000      .226979    .3149556
+              Married |   .0779469   .0258669     3.01   0.003     .0272487    .1286452
+              Healthy |  -.1571442   .0343241    -4.58   0.000    -.2244181   -.0898702
+     Education_Father |   .0173572   .0069652     2.49   0.013     .0037056    .0310087
+     Education_Mother |  -.0073356   .0074138    -0.99   0.322    -.0218664    .0071952
+  Living_In_Territory |    .040989   .0061464     6.67   0.000     .0289422    .0530358
+    Born_In_Australia |   .0918451   .0233197     3.94   0.000     .0461394    .1375508
+Hours_Worked_Per_Week |   .0173428   .0006625    26.18   0.000     .0160443    .0186413
+                _cons |   7.855666   .0934879    84.03   0.000     7.672433    8.038899
+----------------------+----------------------------------------------------------------
+              sigma_u |  .25588014
+              sigma_e |  .96015704
+                  rho |  .06631175   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model1A_Entrepreneurs_RE
+
+. 
+. // Employees (RE)
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Age Gender Married Healthy Educat
+> ion_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week if EntrepreneurGroup == 
+> 0, re
+
+Random-effects GLS regression                   Number of obs     =     76,832
+Group variable: hhrpid                          Number of groups  =     44,219
+
+R-squared:                                      Obs per group:
+     Within  = 0.4523                                         min =          1
+     Between = 0.5569                                         avg =        1.7
+     Overall = 0.5196                                         max =          7
+
+                                                Wald chi2(10)     =          .
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =          .
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |    .090353   .0011905    75.90   0.000     .0880198    .0926863
+    EntrepreneurGroup |          0  (omitted)
+EducationEntrepreneur |          0  (omitted)
+                  Age |   .0174919   .0002087    83.82   0.000     .0170828    .0179009
+               Gender |   .1471681   .0050054    29.40   0.000     .1373576    .1569786
+              Married |    .252803   .0053162    47.55   0.000     .2423835    .2632225
+              Healthy |  -.0751453   .0081574    -9.21   0.000    -.0911334   -.0591571
+     Education_Father |   .0109536   .0016841     6.50   0.000     .0076528    .0142544
+     Education_Mother |   .0048083   .0017678     2.72   0.007     .0013434    .0082731
+  Living_In_Territory |   .0069026   .0015066     4.58   0.000     .0039497    .0098554
+    Born_In_Australia |   .0441984   .0061695     7.16   0.000     .0321064    .0562903
+Hours_Worked_Per_Week |   .0361893   .0001924   188.07   0.000     .0358122    .0365664
+                _cons |   7.107174    .020977   338.81   0.000     7.066059    7.148288
+----------------------+----------------------------------------------------------------
+              sigma_u |  .31004708
+              sigma_e |  .59432789
+                  rho |  .21392713   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2A_Employees_RE
+
+. esttab, label
+
+----------------------------------------------------
+                              (1)             (2)   
+                     Log_Gross_~e    Log_Gross_~e   
+----------------------------------------------------
+Education                   0.118***       0.0904***
+                          (23.78)         (75.90)   
+
+Entrepreneur with ~p            0               0   
+                              (.)             (.)   
+
+EducationEntrepren~r            0               0   
+                              (.)             (.)   
+
+Age                       0.00294**        0.0175***
+                           (3.02)         (83.82)   
+
+Gender                      0.271***        0.147***
+                          (12.07)         (29.40)   
+
+Married                    0.0779**         0.253***
+                           (3.01)         (47.55)   
+
+Healthy                    -0.157***      -0.0751***
+                          (-4.58)         (-9.21)   
+
+Education_Father           0.0174*         0.0110***
+                           (2.49)          (6.50)   
+
+Education_Mother         -0.00734         0.00481** 
+                          (-0.99)          (2.72)   
+
+Living_In_Territory        0.0410***      0.00690***
+                           (6.67)          (4.58)   
+
+Born_In_Australia          0.0918***       0.0442***
+                           (3.94)          (7.16)   
+
+Hours_Worked_Per_W~k       0.0173***       0.0362***
+                          (26.18)        (188.07)   
+
+Constant                    7.856***        7.107***
+                          (84.03)        (338.81)   
+----------------------------------------------------
+Observations                10285           76832   
+----------------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Age Gender Married Healthy Educat
+> ion_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3773                                         min =          1
+     Between = 0.5101                                         avg =        1.9
+     Overall = 0.4509                                         max =          7
+
+                                                Wald chi2(12)     =   70038.09
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |    .093592   .0012902    72.54   0.000     .0910632    .0961208
+    EntrepreneurGroup |  -.5801251   .0464924   -12.48   0.000    -.6712485   -.4890016
+EducationEntrepreneur |   .0229803   .0035667     6.44   0.000     .0159897     .029971
+                  Age |    .016696   .0002156    77.42   0.000     .0162733    .0171187
+               Gender |   .1614426   .0051639    31.26   0.000     .1513215    .1715637
+              Married |   .2513587   .0055184    45.55   0.000     .2405429    .2621745
+              Healthy |  -.0856089   .0083669   -10.23   0.000    -.1020077   -.0692101
+     Education_Father |   .0120376   .0017231     6.99   0.000     .0086605    .0154148
+     Education_Mother |   .0038349   .0018116     2.12   0.034     .0002842    .0073856
+  Living_In_Territory |   .0103952   .0015307     6.79   0.000     .0073951    .0133953
+    Born_In_Australia |   .0497998   .0062398     7.98   0.000     .0375701    .0620295
+Hours_Worked_Per_Week |   .0332183   .0001914   173.57   0.000     .0328432    .0335934
+                _cons |   7.187546   .0221733   324.15   0.000     7.144087    7.231005
+----------------------+----------------------------------------------------------------
+              sigma_u |   .2822803
+              sigma_e |  .66504847
+                  rho |  .15265613   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model3A_All_RE
+
+. esttab, label
+
+--------------------------------------------------------------------
+                              (1)             (2)             (3)   
+                     Log_Gross_~e    Log_Gross_~e    Log_Gross_~e   
+--------------------------------------------------------------------
+Education                   0.118***       0.0904***       0.0936***
+                          (23.78)         (75.90)         (72.54)   
+
+Entrepreneur with ~p            0               0          -0.580***
+                              (.)             (.)        (-12.48)   
+
+EducationEntrepren~r            0               0          0.0230***
+                              (.)             (.)          (6.44)   
+
+Age                       0.00294**        0.0175***       0.0167***
+                           (3.02)         (83.82)         (77.42)   
+
+Gender                      0.271***        0.147***        0.161***
+                          (12.07)         (29.40)         (31.26)   
+
+Married                    0.0779**         0.253***        0.251***
+                           (3.01)         (47.55)         (45.55)   
+
+Healthy                    -0.157***      -0.0751***      -0.0856***
+                          (-4.58)         (-9.21)        (-10.23)   
+
+Education_Father           0.0174*         0.0110***       0.0120***
+                           (2.49)          (6.50)          (6.99)   
+
+Education_Mother         -0.00734         0.00481**       0.00383*  
+                          (-0.99)          (2.72)          (2.12)   
+
+Living_In_Territory        0.0410***      0.00690***       0.0104***
+                           (6.67)          (4.58)          (6.79)   
+
+Born_In_Australia          0.0918***       0.0442***       0.0498***
+                           (3.94)          (7.16)          (7.98)   
+
+Hours_Worked_Per_W~k       0.0173***       0.0362***       0.0332***
+                          (26.18)        (188.07)        (173.57)   
+
+Constant                    7.856***        7.107***        7.188***
+                          (84.03)        (338.81)        (324.15)   
+--------------------------------------------------------------------
+Observations                10285           76832           87117   
+--------------------------------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Age Gender Married Healthy Educat
+> ion_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3820                                         min =          1
+     Between = 0.4966                                         avg =        1.9
+     Overall = 0.4447                                         max =          7
+
+                                                F(12, 40512)      =    2086.36
+corr(u_i, Xb) = 0.1224                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0841658   .0017849    47.15   0.000     .0806674    .0876643
+    EntrepreneurGroup |  -.6907715   .0623738   -11.07   0.000    -.8130255   -.5685175
+EducationEntrepreneur |   .0309871   .0047673     6.50   0.000     .0216431    .0403311
+                  Age |   .0116167   .0003151    36.86   0.000      .010999    .0122344
+               Gender |   .1823483   .0072737    25.07   0.000     .1680917    .1966048
+              Married |   .1728475   .0080731    21.41   0.000      .157024    .1886709
+              Healthy |  -.1100791    .011412    -9.65   0.000    -.1324468   -.0877113
+     Education_Father |   .0087205   .0023786     3.67   0.000     .0040584    .0133826
+     Education_Mother |   .0020529   .0025071     0.82   0.413     -.002861    .0069669
+  Living_In_Territory |   .0162986   .0036104     4.51   0.000      .009222    .0233751
+    Born_In_Australia |   .0527552   .0086388     6.11   0.000     .0358228    .0696875
+Hours_Worked_Per_Week |   .0312047   .0002741   113.84   0.000     .0306674     .031742
+                _cons |   7.643602   .0326913   233.81   0.000     7.579526    7.707678
+----------------------+----------------------------------------------------------------
+              sigma_u |  .64385146
+              sigma_e |  .66504847
+                  rho |  .48380973   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(46592, 40512) = 1.26                Prob > F = 0.0000
+
+. eststo model4A_All_FE
+
+. esttab, label
+
+------------------------------------------------------------------------------------
+                              (1)             (2)             (3)             (4)   
+                     Log_Gross_~e    Log_Gross_~e    Log_Gross_~e    Log_Gross_~e   
+------------------------------------------------------------------------------------
+Education                   0.118***       0.0904***       0.0936***       0.0842***
+                          (23.78)         (75.90)         (72.54)         (47.15)   
+
+Entrepreneur with ~p            0               0          -0.580***       -0.691***
+                              (.)             (.)        (-12.48)        (-11.07)   
+
+EducationEntrepren~r            0               0          0.0230***       0.0310***
+                              (.)             (.)          (6.44)          (6.50)   
+
+Age                       0.00294**        0.0175***       0.0167***       0.0116***
+                           (3.02)         (83.82)         (77.42)         (36.86)   
+
+Gender                      0.271***        0.147***        0.161***        0.182***
+                          (12.07)         (29.40)         (31.26)         (25.07)   
+
+Married                    0.0779**         0.253***        0.251***        0.173***
+                           (3.01)         (47.55)         (45.55)         (21.41)   
+
+Healthy                    -0.157***      -0.0751***      -0.0856***       -0.110***
+                          (-4.58)         (-9.21)        (-10.23)         (-9.65)   
+
+Education_Father           0.0174*         0.0110***       0.0120***      0.00872***
+                           (2.49)          (6.50)          (6.99)          (3.67)   
+
+Education_Mother         -0.00734         0.00481**       0.00383*        0.00205   
+                          (-0.99)          (2.72)          (2.12)          (0.82)   
+
+Living_In_Territory        0.0410***      0.00690***       0.0104***       0.0163***
+                           (6.67)          (4.58)          (6.79)          (4.51)   
+
+Born_In_Australia          0.0918***       0.0442***       0.0498***       0.0528***
+                           (3.94)          (7.16)          (7.98)          (6.11)   
+
+Hours_Worked_Per_W~k       0.0173***       0.0362***       0.0332***       0.0312***
+                          (26.18)        (188.07)        (173.57)        (113.84)   
+
+Constant                    7.856***        7.107***        7.188***        7.644***
+                          (84.03)        (338.81)        (324.15)        (233.81)   
+------------------------------------------------------------------------------------
+Observations                10285           76832           87117           87117   
+------------------------------------------------------------------------------------
+t statistics in parentheses
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. esttab using Table_trial_A.rtf, se nostar r2 label mtitle(Entrepreneurs_RE Employees_RE All_RE All_FE)
+(output written to Table_trial_A.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Panel B: Cognitive ability included
+. 
+. // Entrepreneurs (RE) 
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Cognitive_Ability AbilityEntrepre
+> neur Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Wo
+> rked_Per_Week if EntrepreneurGroup == 1, re
+
+Random-effects GLS regression                   Number of obs     =      8,634
+Group variable: hhrpid                          Number of groups  =      7,755
+
+R-squared:                                      Obs per group:
+     Within  = 0.1538                                         min =          1
+     Between = 0.1509                                         avg =        1.1
+     Overall = 0.1502                                         max =          4
+
+                                                Wald chi2(11)     =          .
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =          .
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .1225061   .0053612    22.85   0.000     .1119984    .1330138
+    EntrepreneurGroup |          0  (omitted)
+EducationEntrepreneur |          0  (omitted)
+    Cognitive_Ability |   .0155461   .0135954     1.14   0.253    -.0111004    .0421926
+  AbilityEntrepreneur |          0  (omitted)
+                  Age |   .0029098   .0010925     2.66   0.008     .0007686    .0050511
+               Gender |   .2634798   .0241678    10.90   0.000     .2161119    .3108478
+              Married |   .0339169   .0280003     1.21   0.226    -.0209626    .0887965
+              Healthy |  -.1507698   .0383206    -3.93   0.000    -.2258768   -.0756628
+     Education_Father |   .0162195   .0075378     2.15   0.031     .0014457    .0309932
+     Education_Mother |  -.0080413   .0080104    -1.00   0.315    -.0237414    .0076588
+  Living_In_Territory |   .0535238   .0065195     8.21   0.000     .0407458    .0663017
+    Born_In_Australia |   .0996668   .0251072     3.97   0.000     .0504576    .1488759
+Hours_Worked_Per_Week |   .0164746   .0007328    22.48   0.000     .0150383    .0179108
+                _cons |   7.876413   .1020942    77.15   0.000     7.676312    8.076514
+----------------------+----------------------------------------------------------------
+              sigma_u |  .21175433
+              sigma_e |  .94991509
+                  rho |  .04734049   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model1B_Entrepreneurs_RE
+
+. 
+. // Employees (RE)
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Cognitive_Ability AbilityEntrepre
+> neur Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Wo
+> rked_Per_Week if EntrepreneurGroup == 0, re
+
+Random-effects GLS regression                   Number of obs     =     65,846
+Group variable: hhrpid                          Number of groups  =     39,247
+
+R-squared:                                      Obs per group:
+     Within  = 0.4592                                         min =          1
+     Between = 0.5675                                         avg =        1.7
+     Overall = 0.5300                                         max =          7
+
+                                                Wald chi2(11)     =          .
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =          .
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0881623   .0012145    72.59   0.000     .0857818    .0905427
+    EntrepreneurGroup |          0  (omitted)
+EducationEntrepreneur |          0  (omitted)
+    Cognitive_Ability |   .0423305   .0030355    13.95   0.000     .0363811    .0482799
+  AbilityEntrepreneur |          0  (omitted)
+                  Age |   .0176788   .0002191    80.70   0.000     .0172494    .0181081
+               Gender |   .1599793   .0051241    31.22   0.000     .1499362    .1700223
+              Married |    .241653   .0054685    44.19   0.000      .230935     .252371
+              Healthy |  -.0671558   .0084311    -7.97   0.000    -.0836804   -.0506312
+     Education_Father |   .0092088   .0017242     5.34   0.000     .0058295    .0125881
+     Education_Mother |   .0057611    .001806     3.19   0.001     .0022215    .0093007
+  Living_In_Territory |   .0048931   .0015273     3.20   0.001     .0018997    .0078866
+    Born_In_Australia |   .0397704   .0063142     6.30   0.000     .0273947     .052146
+Hours_Worked_Per_Week |   .0352393   .0002008   175.48   0.000     .0348457    .0356329
+                _cons |     7.2177   .0216683   333.10   0.000     7.175231    7.260169
+----------------------+----------------------------------------------------------------
+              sigma_u |  .28582788
+              sigma_e |  .56142378
+                  rho |  .20584219   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2B_Employees_RE
+
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Cognitive_Ability AbilityEntrepre
+> neur Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Wo
+> rked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3778                                         min =          1
+     Between = 0.5146                                         avg =        1.8
+     Overall = 0.4562                                         max =          7
+
+                                                Wald chi2(14)     =   61343.04
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0912007   .0013294    68.60   0.000     .0885952    .0938063
+    EntrepreneurGroup |  -.6493098   .0488371   -13.30   0.000    -.7450286   -.5535909
+EducationEntrepreneur |   .0275633   .0037299     7.39   0.000     .0202528    .0348737
+    Cognitive_Ability |   .0393972   .0033287    11.84   0.000     .0328732    .0459213
+  AbilityEntrepreneur |  -.0121349   .0098556    -1.23   0.218    -.0314515    .0071816
+                  Age |   .0169116   .0002292    73.80   0.000     .0164624    .0173607
+               Gender |   .1727325   .0053462    32.31   0.000     .1622541    .1832109
+              Married |    .237752   .0057379    41.44   0.000     .2265059    .2489981
+              Healthy |   -.079792   .0087727    -9.10   0.000    -.0969861   -.0625979
+     Education_Father |   .0104838   .0017848     5.87   0.000     .0069857    .0139819
+     Education_Mother |   .0049936   .0018722     2.67   0.008     .0013241    .0086631
+  Living_In_Territory |   .0100081   .0015617     6.41   0.000     .0069473    .0130689
+    Born_In_Australia |   .0474883   .0064563     7.36   0.000     .0348342    .0601424
+Hours_Worked_Per_Week |   .0323296   .0002024   159.71   0.000     .0319328    .0327263
+                _cons |   7.293117    .023142   315.15   0.000     7.247759    7.338474
+----------------------+----------------------------------------------------------------
+              sigma_u |   .2534951
+              sigma_e |  .63687307
+                  rho |  .13676158   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model3B_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education EntrepreneurGroup EducationEntrepreneur Cognitive_Ability AbilityEntrepre
+> neur Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Wo
+> rked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3833                                         min =          1
+     Between = 0.4991                                         avg =        1.8
+     Overall = 0.4489                                         max =          7
+
+                                                F(14, 32962)      =    1463.20
+corr(u_i, Xb) = 0.1209                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0827042   .0019034    43.45   0.000     .0789734     .086435
+    EntrepreneurGroup |  -.7760159    .067635   -11.47   0.000     -.908583   -.6434489
+EducationEntrepreneur |   .0367878   .0051411     7.16   0.000     .0267111    .0468646
+    Cognitive_Ability |   .0535616   .0053016    10.10   0.000     .0431702     .063953
+  AbilityEntrepreneur |  -.0038905   .0142654    -0.27   0.785    -.0318512    .0240703
+                  Age |   .0114953   .0003449    33.33   0.000     .0108193    .0121712
+               Gender |   .1930068   .0077838    24.80   0.000     .1777503    .2082632
+              Married |    .158398   .0086836    18.24   0.000     .1413779    .1754181
+              Healthy |  -.1097407   .0122904    -8.93   0.000    -.1338303   -.0856511
+     Education_Father |   .0063916   .0025473     2.51   0.012     .0013989    .0113844
+     Education_Mother |   .0018434   .0026829     0.69   0.492    -.0034152    .0071019
+  Living_In_Territory |   .0160122   .0041238     3.88   0.000     .0079293     .024095
+    Born_In_Australia |   .0514656   .0092475     5.57   0.000     .0333402    .0695911
+Hours_Worked_Per_Week |   .0303746   .0002991   101.55   0.000     .0297884    .0309609
+                _cons |   7.759685   .0355556   218.24   0.000     7.689995    7.829375
+----------------------+----------------------------------------------------------------
+              sigma_u |   .6163899
+              sigma_e |  .63687307
+                  rho |  .48366049   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(41503, 32962) = 1.22                Prob > F = 0.0000
+
+. eststo model4B_All_FE
+
+. 
+. esttab using Table_trial_2_B.rtf, se nostar r2 label mtitle(Entrepreneurs_RE Employees_RE All_RE All_FE)
+(output written to Table_trial_2_B.rtf)
+
+. 
+. eststo clear
+
+. 
+. 
+. // Table 3
+. 
+. 
+. 
+. // Panel A: Cognitive ability not included
+. egen Education_mean = mean(Education), by(hhrpid)
+
+. gen Education_demeaned = Education - Education_mean //1
+
+. gen EdemeanedEntrepreneur = Education_demeaned*EntrepreneurGroup //2
+
+. gen JobControlEdemeaned = Job_Control*Education_demeaned //3
+
+. gen JobControlEntrepreneur = Job_Control*EntrepreneurGroup //4
+
+. gen JobControlEntrepreneurEdemeaned = Job_Control*EntrepreneurGroup*Education_demeaned // 5
+
+. 
+. 
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur Job_Control JobControlEd
+> emeaned JobControlEntrepreneur JobControlEntrepreneurEdemeaned Age Gender Married Healthy Education_Father Educa
+> tion_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3787                                         min =          1
+     Between = 0.4820                                         avg =        1.9
+     Overall = 0.4296                                         max =          7
+
+                                                Wald chi2(16)     =   64750.90
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+-------------------------------------------------------------------------------------------------
+         Log_Gross_Labor_Income | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------+----------------------------------------------------------------
+             Education_demeaned |   .0724921   .0017683    41.00   0.000     .0690263    .0759578
+              EntrepreneurGroup |   -.323947   .0122689   -26.40   0.000    -.3479935   -.2999005
+          EdemeanedEntrepreneur |   .0553133   .0083834     6.60   0.000     .0388821    .0717444
+                    Job_Control |   .0828244   .0028054    29.52   0.000      .077326    .0883229
+            JobControlEdemeaned |   .0057991   .0019616     2.96   0.003     .0019544    .0096437
+         JobControlEntrepreneur |  -.0519439   .0100613    -5.16   0.000    -.0716636   -.0322242
+JobControlEntrepreneurEdemeaned |  -.0236694   .0068635    -3.45   0.001    -.0371216   -.0102172
+                            Age |    .017121   .0002194    78.04   0.000      .016691     .017551
+                         Gender |   .1309598   .0052353    25.01   0.000     .1206987    .1412208
+                        Married |   .2635603   .0056067    47.01   0.000     .2525714    .2745492
+                        Healthy |  -.0889538   .0084967   -10.47   0.000     -.105607   -.0723005
+               Education_Father |    .019065   .0017438    10.93   0.000     .0156473    .0224827
+               Education_Mother |   .0166101   .0018244     9.10   0.000     .0130343    .0201859
+            Living_In_Territory |   .0077434   .0015791     4.90   0.000     .0046484    .0108385
+              Born_In_Australia |   .0157799   .0063081     2.50   0.012     .0034163    .0281435
+          Hours_Worked_Per_Week |   .0337298    .000194   173.85   0.000     .0333495    .0341101
+                          _cons |   8.316384   .0179198   464.09   0.000     8.281262    8.351506
+--------------------------------+----------------------------------------------------------------
+                        sigma_u |  .32163124
+                        sigma_e |  .66288725
+                            rho |  .19055646   (fraction of variance due to u_i)
+-------------------------------------------------------------------------------------------------
+
+. eststo model2A_All_RE
+
+. 
+. 
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur Job_Control JobControlEd
+> emeaned JobControlEntrepreneur JobControlEntrepreneurEdemeaned Age Gender Married Healthy Education_Father Educa
+> tion_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3787                                         min =          1
+     Between = 0.4820                                         avg =        1.9
+     Overall = 0.4296                                         max =          7
+
+                                                Wald chi2(16)     =   64750.90
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+-------------------------------------------------------------------------------------------------
+         Log_Gross_Labor_Income | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------+----------------------------------------------------------------
+             Education_demeaned |   .0724921   .0017683    41.00   0.000     .0690263    .0759578
+              EntrepreneurGroup |   -.323947   .0122689   -26.40   0.000    -.3479935   -.2999005
+          EdemeanedEntrepreneur |   .0553133   .0083834     6.60   0.000     .0388821    .0717444
+                    Job_Control |   .0828244   .0028054    29.52   0.000      .077326    .0883229
+            JobControlEdemeaned |   .0057991   .0019616     2.96   0.003     .0019544    .0096437
+         JobControlEntrepreneur |  -.0519439   .0100613    -5.16   0.000    -.0716636   -.0322242
+JobControlEntrepreneurEdemeaned |  -.0236694   .0068635    -3.45   0.001    -.0371216   -.0102172
+                            Age |    .017121   .0002194    78.04   0.000      .016691     .017551
+                         Gender |   .1309598   .0052353    25.01   0.000     .1206987    .1412208
+                        Married |   .2635603   .0056067    47.01   0.000     .2525714    .2745492
+                        Healthy |  -.0889538   .0084967   -10.47   0.000     -.105607   -.0723005
+               Education_Father |    .019065   .0017438    10.93   0.000     .0156473    .0224827
+               Education_Mother |   .0166101   .0018244     9.10   0.000     .0130343    .0201859
+            Living_In_Territory |   .0077434   .0015791     4.90   0.000     .0046484    .0108385
+              Born_In_Australia |   .0157799   .0063081     2.50   0.012     .0034163    .0281435
+          Hours_Worked_Per_Week |   .0337298    .000194   173.85   0.000     .0333495    .0341101
+                          _cons |   8.316384   .0179198   464.09   0.000     8.281262    8.351506
+--------------------------------+----------------------------------------------------------------
+                        sigma_u |  .32163124
+                        sigma_e |  .66288725
+                            rho |  .19055646   (fraction of variance due to u_i)
+-------------------------------------------------------------------------------------------------
+
+. eststo model2A_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur Job_Control JobControlEd
+> emeaned JobControlEntrepreneur JobControlEntrepreneurEdemeaned Age Gender Married Healthy Education_Father Educa
+> tion_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3860                                         min =          1
+     Between = 0.4619                                         avg =        1.9
+     Overall = 0.4191                                         max =          7
+
+                                                F(16, 40508)      =    1591.77
+corr(u_i, Xb) = 0.1293                          Prob > F          =     0.0000
+
+-------------------------------------------------------------------------------------------------
+         Log_Gross_Labor_Income | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+--------------------------------+----------------------------------------------------------------
+             Education_demeaned |   .0807698   .0018562    43.51   0.000     .0771317    .0844079
+              EntrepreneurGroup |  -.3056647   .0162891   -18.77   0.000    -.3375916   -.2737378
+          EdemeanedEntrepreneur |   .0506529   .0097252     5.21   0.000     .0315913    .0697145
+                    Job_Control |   .0642879   .0038617    16.65   0.000     .0567189     .071857
+            JobControlEdemeaned |   .0020904    .002274     0.92   0.358    -.0023667    .0065475
+         JobControlEntrepreneur |  -.0455024   .0134263    -3.39   0.001    -.0718182   -.0191865
+JobControlEntrepreneurEdemeaned |  -.0205555   .0079546    -2.58   0.010    -.0361468   -.0049642
+                            Age |   .0113109   .0003147    35.94   0.000     .0106941    .0119278
+                         Gender |   .1751905   .0072687    24.10   0.000     .1609437    .1894373
+                        Married |   .1651198   .0080564    20.50   0.000      .149329    .1809105
+                        Healthy |  -.0988714   .0113972    -8.68   0.000    -.1212102   -.0765326
+               Education_Father |   .0086536   .0023707     3.65   0.000      .004007    .0133001
+               Education_Mother |   .0022395   .0024989     0.90   0.370    -.0026583    .0071374
+            Living_In_Territory |   .0159456   .0035987     4.43   0.000     .0088921    .0229991
+              Born_In_Australia |   .0507267   .0086123     5.89   0.000     .0338463    .0676071
+          Hours_Worked_Per_Week |   .0308852   .0002736   112.87   0.000     .0303489    .0314216
+                          _cons |   8.769536   .0266471   329.10   0.000     8.717307    8.821765
+--------------------------------+----------------------------------------------------------------
+                        sigma_u |  .66788143
+                        sigma_e |  .66288725
+                            rho |   .5037528   (fraction of variance due to u_i)
+-------------------------------------------------------------------------------------------------
+F test that all u_i=0: F(46592, 40508) = 1.35                Prob > F = 0.0000
+
+. eststo model2A_All_FE
+
+. 
+. esttab using Table3_A.rtf, se nostar r2 label mtitle(All_RE All_FE)
+(output written to Table3_A.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Panel B: Cognitive ability included
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur Job_Control JobControlEd
+> emeaned JobControlEntrepreneur JobControlEntrepreneurEdemeaned Cognitive_Ability AbilityEntrepreneur Age Gender 
+> Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, r
+> e
+
+Random-effects GLS regression                   Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3786                                         min =          1
+     Between = 0.4869                                         avg =        1.8
+     Overall = 0.4344                                         max =          7
+
+                                                Wald chi2(18)     =   56512.85
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+-------------------------------------------------------------------------------------------------
+         Log_Gross_Labor_Income | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+--------------------------------+----------------------------------------------------------------
+             Education_demeaned |   .0709698   .0018281    38.82   0.000     .0673868    .0745527
+              EntrepreneurGroup |  -.3090162   .0130055   -23.76   0.000    -.3345065   -.2835259
+          EdemeanedEntrepreneur |    .063796   .0088985     7.17   0.000     .0463552    .0812368
+                    Job_Control |   .0799197   .0029055    27.51   0.000     .0742251    .0856143
+            JobControlEdemeaned |   .0057792    .002016     2.87   0.004      .001828    .0097304
+         JobControlEntrepreneur |  -.0735179   .0106728    -6.89   0.000    -.0944362   -.0525997
+JobControlEntrepreneurEdemeaned |  -.0256106   .0072815    -3.52   0.000     -.039882   -.0113392
+              Cognitive_Ability |   .0332239   .0033941     9.79   0.000     .0265716    .0398761
+            AbilityEntrepreneur |   .0033706   .0100285     0.34   0.737    -.0162849    .0230262
+                            Age |   .0173536   .0002334    74.36   0.000     .0168962     .017811
+                         Gender |   .1424913   .0054286    26.25   0.000     .1318514    .1531312
+                        Married |   .2506657   .0058365    42.95   0.000     .2392264     .262105
+                        Healthy |  -.0819582   .0089232    -9.18   0.000    -.0994474   -.0644691
+               Education_Father |   .0173621   .0018089     9.60   0.000     .0138168    .0209074
+               Education_Mother |   .0176582   .0018876     9.35   0.000     .0139585    .0213578
+            Living_In_Territory |   .0074738   .0016143     4.63   0.000     .0043099    .0106377
+              Born_In_Australia |   .0144819   .0065355     2.22   0.027     .0016725    .0272913
+          Hours_Worked_Per_Week |   .0327859   .0002056   159.48   0.000     .0323829    .0331888
+                          _cons |   8.395103   .0187908   446.77   0.000     8.358274    8.431933
+--------------------------------+----------------------------------------------------------------
+                        sigma_u |  .29311657
+                        sigma_e |  .63498346
+                            rho |  .17565647   (fraction of variance due to u_i)
+-------------------------------------------------------------------------------------------------
+
+. eststo model2B_All_RE
+
+. 
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur Job_Control JobControlEd
+> emeaned JobControlEntrepreneur JobControlEntrepreneurEdemeaned Cognitive_Ability AbilityEntrepreneur Age Gender 
+> Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, f
+> e
+
+Fixed-effects (within) regression               Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3870                                         min =          1
+     Between = 0.4642                                         avg =        1.8
+     Overall = 0.4225                                         max =          7
+
+                                                F(18, 32958)      =    1155.96
+corr(u_i, Xb) = 0.1275                          Prob > F          =     0.0000
+
+-------------------------------------------------------------------------------------------------
+         Log_Gross_Labor_Income | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+--------------------------------+----------------------------------------------------------------
+             Education_demeaned |   .0796798   .0019765    40.31   0.000     .0758058    .0835538
+              EntrepreneurGroup |  -.3015626   .0178052   -16.94   0.000    -.3364614   -.2666637
+          EdemeanedEntrepreneur |   .0587662   .0107161     5.48   0.000     .0377623    .0797701
+                    Job_Control |   .0606775   .0041166    14.74   0.000     .0526088    .0687462
+            JobControlEdemeaned |   .0016905   .0024166     0.70   0.484     -.003046    .0064271
+         JobControlEntrepreneur |  -.0539814   .0146443    -3.69   0.000    -.0826848   -.0252779
+JobControlEntrepreneurEdemeaned |  -.0237628   .0087799    -2.71   0.007    -.0409718   -.0065539
+              Cognitive_Ability |    .050375   .0052899     9.52   0.000     .0400066    .0607433
+            AbilityEntrepreneur |   .0027899   .0142458     0.20   0.845    -.0251323    .0307121
+                            Age |   .0112336   .0003444    32.62   0.000     .0105585    .0119087
+                         Gender |   .1864772   .0077809    23.97   0.000     .1712265     .201728
+                        Married |   .1515504   .0086664    17.49   0.000     .1345638    .1685369
+                        Healthy |  -.0980719   .0122837    -7.98   0.000    -.1221485   -.0739954
+               Education_Father |   .0064654   .0025393     2.55   0.011     .0014882    .0114426
+               Education_Mother |   .0020365    .002675     0.76   0.446    -.0032067    .0072796
+            Living_In_Territory |    .015764   .0041116     3.83   0.000     .0077051    .0238228
+              Born_In_Australia |   .0493431   .0092229     5.35   0.000      .031266    .0674203
+          Hours_Worked_Per_Week |   .0300271   .0002988   100.50   0.000     .0294415    .0306127
+                          _cons |   8.867413   .0291531   304.17   0.000     8.810272    8.924554
+--------------------------------+----------------------------------------------------------------
+                        sigma_u |  .63936209
+                        sigma_e |  .63498346
+                            rho |  .50343594   (fraction of variance due to u_i)
+-------------------------------------------------------------------------------------------------
+F test that all u_i=0: F(41503, 32958) = 1.32                Prob > F = 0.0000
+
+. eststo model2B_All_FE
+
+. 
+. esttab using Table3_B.rtf, se nostar r2 label mtitle(All_RE All_FE)
+(output written to Table3_B.rtf)
+
+. 
+. 
+. eststo clear
+
+. 
+. 
+. 
+. //==============================================
+. 
+. 
+. // Table 4
+. 
+. // Generate triple interaction
+. 
+. gen EWO = (Entrepreneur == 3)
+
+. gen EW = (Entrepreneur == 2)
+
+. 
+. gen EEWO = Education * EWO
+
+. gen EEW = Education * EW
+
+. 
+. gen AEWO = Cognitive_Ability * EWO
+(12,637 missing values generated)
+
+. gen AEW = Cognitive_Ability * EW
+(12,637 missing values generated)
+
+. 
+. // Panel A: Cognitive ability not included
+. 
+. // Entrepreneurs (RE) 
+. xtreg Log_Gross_Labor_Income Education Age Gender Married Healthy Education_Father Education_Mother Living_In_Te
+> rritory Born_In_Australia Hours_Worked_Per_Week if Entrepreneur == 3, re
+
+Random-effects GLS regression                   Number of obs     =      6,051
+Group variable: hhrpid                          Number of groups  =      5,614
+
+R-squared:                                      Obs per group:
+     Within  = 0.1486                                         min =          1
+     Between = 0.1449                                         avg =        1.1
+     Overall = 0.1439                                         max =          4
+
+                                                Wald chi2(10)     =    1019.66
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .1176258   .0068748    17.11   0.000     .1041515    .1311001
+                  Age |   .0026935   .0012811     2.10   0.036     .0001825    .0052044
+               Gender |   .2798402   .0298237     9.38   0.000     .2213869    .3382936
+              Married |   .0217127   .0320703     0.68   0.498    -.0411438    .0845693
+              Healthy |   -.104603   .0446344    -2.34   0.019    -.1920849   -.0171211
+     Education_Father |   .0130344   .0094234     1.38   0.167     -.005435    .0315039
+     Education_Mother |   .0046243   .0100658     0.46   0.646    -.0151043    .0243529
+  Living_In_Territory |   .0410294   .0085161     4.82   0.000     .0243383    .0577206
+    Born_In_Australia |   .0804382   .0316593     2.54   0.011     .0183872    .1424892
+Hours_Worked_Per_Week |   .0193054   .0008972    21.52   0.000     .0175469    .0210639
+                _cons |   7.667091   .1281736    59.82   0.000     7.415875    7.918307
+----------------------+----------------------------------------------------------------
+              sigma_u |  .49954373
+              sigma_e |  .90986667
+                  rho |  .23161652   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model1A_Entrepreneurs_RE
+
+. 
+. // Employees (RE)
+. xtreg Log_Gross_Labor_Income Education Age Gender Married Healthy Education_Father Education_Mother Living_In_Te
+> rritory Born_In_Australia Hours_Worked_Per_Week if Entrepreneur == 2, re
+
+Random-effects GLS regression                   Number of obs     =      4,234
+Group variable: hhrpid                          Number of groups  =      4,009
+
+R-squared:                                      Obs per group:
+     Within  = 0.1306                                         min =          1
+     Between = 0.1135                                         avg =        1.1
+     Overall = 0.1137                                         max =          4
+
+                                                Wald chi2(10)     =     542.44
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .1044226   .0068589    15.22   0.000     .0909794    .1178658
+                  Age |   .0016387   .0014326     1.14   0.253    -.0011691    .0044465
+               Gender |   .3012099   .0325147     9.26   0.000     .2374822    .3649375
+              Married |   .0107641   .0439254     0.25   0.806    -.0753282    .0968564
+              Healthy |   -.174538   .0511395    -3.41   0.001    -.2747696   -.0743063
+     Education_Father |   .0274425   .0097248     2.82   0.005     .0083823    .0465027
+     Education_Mother |  -.0115143   .0103147    -1.12   0.264    -.0317307    .0087021
+  Living_In_Territory |   .0340466   .0083621     4.07   0.000     .0176572    .0504361
+    Born_In_Australia |   .0823178   .0324918     2.53   0.011      .018635    .1460006
+Hours_Worked_Per_Week |   .0069836   .0009904     7.05   0.000     .0050424    .0089247
+                _cons |   8.803195    .134641    65.38   0.000     8.539303    9.067086
+----------------------+----------------------------------------------------------------
+              sigma_u |  .26233315
+              sigma_e |  .84248008
+                  rho |  .08838871   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2A_Employees_RE
+
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education EWO EW EEWO EEW Age Gender Married Healthy Education_Father Education_Mot
+> her Living_In_Territory Born_In_Australia Hours_Worked_Per_Week , re
+
+Random-effects GLS regression                   Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3792                                         min =          1
+     Between = 0.5108                                         avg =        1.9
+     Overall = 0.4521                                         max =          7
+
+                                                Wald chi2(14)     =   70361.51
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |    .093742   .0012889    72.73   0.000     .0912159    .0962682
+                  EWO |  -.6775559     .05875   -11.53   0.000    -.7927039   -.5624079
+                   EW |  -.3303693   .0703829    -4.69   0.000    -.4683171   -.1924214
+                 EEWO |   .0244996   .0045509     5.38   0.000     .0155801    .0334191
+                  EEW |   .0125374   .0053381     2.35   0.019     .0020749        .023
+                  Age |   .0167181   .0002154    77.60   0.000     .0162959    .0171403
+               Gender |   .1626563   .0051611    31.52   0.000     .1525406    .1727719
+              Married |   .2489987   .0055154    45.15   0.000     .2381887    .2598087
+              Healthy |  -.0842014   .0083584   -10.07   0.000    -.1005835   -.0678192
+     Education_Father |   .0121331   .0017212     7.05   0.000     .0087595    .0155066
+     Education_Mother |    .004284     .00181     2.37   0.018     .0007364    .0078316
+  Living_In_Territory |   .0102247   .0015298     6.68   0.000     .0072263    .0132231
+    Born_In_Australia |   .0490376   .0062333     7.87   0.000     .0368206    .0612546
+Hours_Worked_Per_Week |   .0329785    .000192   171.74   0.000     .0326021    .0333548
+                _cons |   7.192991   .0221541   324.68   0.000      7.14957    7.236413
+----------------------+----------------------------------------------------------------
+              sigma_u |  .28300045
+              sigma_e |  .66401083
+                  rho |  .15372228   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model3A_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income EWO EW EEWO EEW Age Gender Married Healthy Education_Father Education_Mother Living
+> _In_Territory Born_In_Australia Hours_Worked_Per_Week , fe
+
+Fixed-effects (within) regression               Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3499                                         min =          1
+     Between = 0.4642                                         avg =        1.9
+     Overall = 0.4101                                         max =          7
+
+                                                F(13, 40511)      =    1677.03
+corr(u_i, Xb) = 0.1206                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+                  EWO |  -1.717457   .0776604   -22.11   0.000    -1.869673    -1.56524
+                   EW |  -1.464807   .0949412   -15.43   0.000    -1.650893    -1.27872
+                 EEWO |    .102849   .0059964    17.15   0.000     .0910958    .1146021
+                  EEW |   .0995085   .0071608    13.90   0.000     .0854732    .1135439
+                  Age |   .0121543    .000323    37.63   0.000     .0115212    .0127874
+               Gender |   .1572271   .0074425    21.13   0.000     .1426397    .1718146
+              Married |   .2017089   .0082569    24.43   0.000     .1855252    .2178925
+              Healthy |  -.1303796    .011696   -11.15   0.000    -.1533039   -.1074553
+     Education_Father |   .0184239   .0024304     7.58   0.000     .0136603    .0231875
+     Education_Mother |   .0202647   .0025432     7.97   0.000     .0152799    .0252494
+  Living_In_Territory |   .0194523   .0037026     5.25   0.000     .0121951    .0267096
+    Born_In_Australia |   .0106522   .0088174     1.21   0.227    -.0066301    .0279345
+Hours_Worked_Per_Week |   .0321278   .0002813   114.22   0.000     .0315764    .0326791
+                _cons |   8.568129   .0270658   316.57   0.000      8.51508    8.621179
+----------------------+----------------------------------------------------------------
+              sigma_u |  .66414355
+              sigma_e |  .68209755
+                  rho |  .48666598   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(46592, 40511) = 1.27                Prob > F = 0.0000
+
+. eststo model4A_All_FE
+
+. 
+. esttab using Table4_A_d.rtf, se nostar r2 label
+(output written to Table4_A_d.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Panel B: Cognitive ability included
+. 
+. // Entrepreneurs (RE) 
+. xtreg Log_Gross_Labor_Income Education Cognitive_Ability Age Gender Married Healthy Education_Father Education_M
+> other Living_In_Territory Born_In_Australia Hours_Worked_Per_Week if Entrepreneur == 3, re
+
+Random-effects GLS regression                   Number of obs     =      4,991
+Group variable: hhrpid                          Number of groups  =      4,649
+
+R-squared:                                      Obs per group:
+     Within  = 0.1338                                         min =          1
+     Between = 0.1319                                         avg =        1.1
+     Overall = 0.1311                                         max =          4
+
+                                                Wald chi2(11)     =     753.16
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .1197709   .0075519    15.86   0.000     .1049694    .1345723
+    Cognitive_Ability |   .0008755   .0182139     0.05   0.962    -.0348232    .0365742
+                  Age |   .0024026   .0014502     1.66   0.098    -.0004397     .005245
+               Gender |   .2547684   .0323486     7.88   0.000     .1913663    .3181705
+              Married |  -.0080503   .0349046    -0.23   0.818     -.076462    .0603615
+              Healthy |  -.0642677   .0498859    -1.29   0.198    -.1620422    .0335068
+     Education_Father |   .0080336   .0102897     0.78   0.435    -.0121339    .0282011
+     Education_Mother |   .0024004   .0109258     0.22   0.826    -.0190138    .0238146
+  Living_In_Territory |   .0553316   .0091808     6.03   0.000     .0373376    .0733256
+    Born_In_Australia |   .0883832   .0345219     2.56   0.010     .0207215    .1560449
+Hours_Worked_Per_Week |    .017679   .0009994    17.69   0.000     .0157202    .0196377
+                _cons |   7.790016   .1421163    54.81   0.000     7.511473    8.068558
+----------------------+----------------------------------------------------------------
+              sigma_u |  .45757573
+              sigma_e |  .90861641
+                  rho |  .20230317   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model1B_Entrepreneurs_RE
+
+. 
+. // Employees (RE)
+. xtreg Log_Gross_Labor_Income Education Cognitive_Ability Age Gender Married Healthy Education_Father Education_M
+> other Living_In_Territory Born_In_Australia Hours_Worked_Per_Week if Entrepreneur == 2, re
+
+Random-effects GLS regression                   Number of obs     =      3,643
+Group variable: hhrpid                          Number of groups  =      3,459
+
+R-squared:                                      Obs per group:
+     Within  = 0.1195                                         min =          1
+     Between = 0.1222                                         avg =        1.1
+     Overall = 0.1227                                         max =          4
+
+                                                Wald chi2(11)     =     507.36
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .1093202   .0074222    14.73   0.000     .0947729    .1238676
+    Cognitive_Ability |   .0170592    .019647     0.87   0.385    -.0214483    .0555667
+                  Age |   .0017884   .0016096     1.11   0.267    -.0013664    .0049433
+               Gender |   .2954182   .0353678     8.35   0.000     .2260985    .3647379
+              Married |  -.0306122   .0478641    -0.64   0.522    -.1244241    .0631996
+              Healthy |  -.2182883   .0582175    -3.75   0.000    -.3323924   -.1041842
+     Education_Father |   .0303454   .0106075     2.86   0.004     .0095551    .0511357
+     Education_Mother |  -.0143538   .0112922    -1.27   0.204    -.0364861    .0077785
+  Living_In_Territory |   .0424262   .0088763     4.78   0.000      .025029    .0598234
+    Born_In_Australia |    .094248    .035081     2.69   0.007     .0254905    .1630055
+Hours_Worked_Per_Week |   .0083346   .0011044     7.55   0.000     .0061701    .0104992
+                _cons |   8.678976   .1477802    58.73   0.000     8.389333     8.96862
+----------------------+----------------------------------------------------------------
+              sigma_u |  .20331021
+              sigma_e |  .85721058
+                  rho |  .05325686   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2B_Employees_RE
+
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education EWO EW EEWO EEW AEWO AEW Age Gender Married Healthy Education_Father Educ
+> ation_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week , re
+
+Random-effects GLS regression                   Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3774                                         min =          1
+     Between = 0.5147                                         avg =        1.8
+     Overall = 0.4560                                         max =          7
+
+                                                Wald chi2(16)     =   61290.96
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0910443   .0013295    68.48   0.000     .0884384    .0936501
+                  EWO |  -.7033146   .0624568   -11.26   0.000    -.8257276   -.5809017
+                   EW |  -.4764504   .0733391    -6.50   0.000    -.6201923   -.3327085
+                 EEWO |   .0270422   .0048266     5.60   0.000     .0175823    .0365022
+                  EEW |   .0209076   .0055233     3.79   0.000     .0100821    .0317331
+                 AEWO |   .0008862   .0120308     0.07   0.941    -.0226937    .0244661
+                  AEW |   .0604438   .0146783     4.12   0.000     .0316748    .0892128
+                  Age |   .0170301    .000229    74.36   0.000     .0165812    .0174789
+               Gender |   .1719837   .0053492    32.15   0.000     .1614994     .182468
+              Married |   .2363745   .0057417    41.17   0.000      .225121     .247628
+              Healthy |  -.0798532    .008775    -9.10   0.000    -.0970519   -.0626546
+     Education_Father |   .0121135   .0017803     6.80   0.000     .0086243    .0156028
+     Education_Mother |   .0062379   .0018715     3.33   0.001     .0025699     .009906
+  Living_In_Territory |   .0098705   .0015619     6.32   0.000     .0068093    .0129317
+    Born_In_Australia |   .0516564   .0064453     8.01   0.000     .0390238     .064289
+Hours_Worked_Per_Week |   .0320391   .0002031   157.74   0.000      .031641    .0324372
+                _cons |   7.285932   .0231298   315.00   0.000     7.240599    7.331266
+----------------------+----------------------------------------------------------------
+              sigma_u |  .25312031
+              sigma_e |  .63708666
+                  rho |  .13633362   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model3B_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income EWO EW EEWO EEW AEWO AEW Age Gender Married Healthy Education_Father Education_Moth
+> er Living_In_Territory Born_In_Australia Hours_Worked_Per_Week , fe
+
+Fixed-effects (within) regression               Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3478                                         min =          1
+     Between = 0.4658                                         avg =        1.8
+     Overall = 0.4121                                         max =          7
+
+                                                F(15, 32961)      =    1171.87
+corr(u_i, Xb) = 0.1208                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+                  EWO |  -1.714782   .0854005   -20.08   0.000     -1.88217   -1.547394
+                   EW |  -1.609907   .1026898   -15.68   0.000    -1.811182   -1.408631
+                 EEWO |   .1025364   .0065733    15.60   0.000     .0896526    .1154203
+                  EEW |   .1080358   .0076792    14.07   0.000     .0929844    .1230872
+                 AEWO |   .0275224   .0180491     1.52   0.127    -.0078545    .0628994
+                  AEW |   .0670238   .0213594     3.14   0.002     .0251586     .108889
+                  Age |   .0120888   .0003542    34.12   0.000     .0113944    .0127831
+               Gender |   .1645726   .0079816    20.62   0.000     .1489283    .1802168
+              Married |   .1880188   .0089049    21.11   0.000     .1705649    .2054727
+              Healthy |  -.1304256   .0126301   -10.33   0.000     -.155181   -.1056701
+     Education_Father |   .0173899   .0026045     6.68   0.000      .012285    .0224948
+     Education_Mother |   .0206295   .0027273     7.56   0.000     .0152838    .0259751
+  Living_In_Territory |   .0201859   .0042401     4.76   0.000     .0118751    .0284967
+    Born_In_Australia |   .0171296   .0094263     1.82   0.069    -.0013464    .0356056
+Hours_Worked_Per_Week |   .0311755   .0003078   101.29   0.000     .0305722    .0317788
+                _cons |   8.655143   .0296375   292.03   0.000     8.597052    8.713233
+----------------------+----------------------------------------------------------------
+              sigma_u |  .63665967
+              sigma_e |  .65493813
+                  rho |  .48585101   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(41503, 32961) = 1.24                Prob > F = 0.0000
+
+. eststo model4B_All_FE
+
+. 
+. esttab using Table4_B.rtf, se nostar r2 label
+(output written to Table4_B.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Table 5
+. 
+. // Generate triple interaction
+. 
+. gen JE = Job_Control*Education
+
+. gen JEWO = Job_Control*EWO
+
+. gen JEW = Job_Control*EW
+
+. gen JEWOED = Job_Control*EWO*Education_demeaned
+
+. gen JEWED = Job_Control*EW*Education_demeaned
+
+. 
+. 
+. // Panel A: Cognitive ability not included
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education EWO EW EEWO EEW Job_Control JE JEWO JEW JEWOED JEWED Age Gender Married H
+> ealthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3837                                         min =          1
+     Between = 0.5141                                         avg =        1.9
+     Overall = 0.4561                                         max =          7
+
+                                                Wald chi2(20)     =   71518.61
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0898271   .0012955    69.34   0.000      .087288    .0923662
+                  EWO |  -.7754762   .0692363   -11.20   0.000    -.9111769   -.6397755
+                   EW |  -.4956047   .0857292    -5.78   0.000    -.6636309   -.3275785
+                 EEWO |   .0332111   .0054672     6.07   0.000     .0224956    .0439265
+                  EEW |   .0223766   .0065851     3.40   0.001       .00947    .0352832
+          Job_Control |   .0583669   .0164855     3.54   0.000     .0260558    .0906779
+                   JE |   .0008494   .0012701     0.67   0.504    -.0016399    .0033388
+                 JEWO |  -.0882297   .0120316    -7.33   0.000    -.1118112   -.0646482
+                  JEW |  -.0311066   .0167472    -1.86   0.063    -.0639304    .0017172
+               JEWOED |  -.0109848   .0061691    -1.78   0.075     -.023076    .0011065
+                JEWED |  -.0151763   .0071746    -2.12   0.034    -.0292383   -.0011143
+                  Age |   .0162954   .0002153    75.68   0.000     .0158734    .0167174
+               Gender |     .15511    .005155    30.09   0.000     .1450064    .1652136
+              Married |   .2405754    .005506    43.69   0.000     .2297839     .251367
+              Healthy |  -.0729094    .008341    -8.74   0.000    -.0892574   -.0565614
+     Education_Father |   .0117813   .0017152     6.87   0.000     .0084196     .015143
+     Education_Mother |    .004063   .0018035     2.25   0.024     .0005282    .0075977
+  Living_In_Territory |   .0100789   .0015244     6.61   0.000     .0070911    .0130667
+    Born_In_Australia |   .0478166   .0062117     7.70   0.000     .0356419    .0599913
+Hours_Worked_Per_Week |   .0326337   .0001919   170.08   0.000     .0322576    .0330098
+                _cons |   7.292855   .0224564   324.76   0.000     7.248841    7.336869
+----------------------+----------------------------------------------------------------
+              sigma_u |  .28211666
+              sigma_e |  .66164426
+                  rho |  .15383748   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model5A_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income EWO EW EEWO EEW Job_Control JE JEWO JEW JEWOED JEWED Age Gender Married Healthy Edu
+> cation_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     87,117
+Group variable: hhrpid                          Number of groups  =     46,593
+
+R-squared:                                      Obs per group:
+     Within  = 0.3579                                         min =          1
+     Between = 0.4709                                         avg =        1.9
+     Overall = 0.4173                                         max =          7
+
+                                                F(19, 40505)      =    1188.35
+corr(u_i, Xb) = 0.1205                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+                  EWO |  -1.497871   .0987023   -15.18   0.000     -1.69133   -1.304413
+                   EW |  -1.199493   .1261589    -9.51   0.000    -1.446767   -.9522185
+                 EEWO |   .0850256   .0077901    10.91   0.000     .0697569    .1002944
+                  EEW |   .0773494   .0097323     7.95   0.000     .0582739     .096425
+          Job_Control |   .0912569   .0232546     3.92   0.000     .0456773    .1368365
+                   JE |  -.0004438    .001783    -0.25   0.803    -.0039384    .0030509
+                 JEWO |  -.0787223   .0166198    -4.74   0.000    -.1112974   -.0461472
+                  JEW |  -.0631071   .0232476    -2.71   0.007    -.1086728   -.0175413
+               JEWOED |   .0286235   .0079449     3.60   0.000     .0130514    .0441956
+                JEWED |   .0321376    .009437     3.41   0.001     .0136408    .0506344
+                  Age |   .0116895   .0003218    36.32   0.000     .0110587    .0123202
+               Gender |   .1495226   .0074172    20.16   0.000     .1349847    .1640606
+              Married |   .1898408   .0082236    23.09   0.000     .1737225    .2059592
+              Healthy |  -.1140933   .0116495    -9.79   0.000    -.1369266   -.0912601
+     Education_Father |    .017559   .0024162     7.27   0.000     .0128232    .0222947
+     Education_Mother |   .0189311   .0025292     7.49   0.000     .0139738    .0238884
+  Living_In_Territory |   .0191883   .0036803     5.21   0.000     .0119748    .0264018
+    Born_In_Australia |   .0101541    .008766     1.16   0.247    -.0070276    .0273357
+Hours_Worked_Per_Week |   .0316449   .0002804   112.84   0.000     .0310952    .0321946
+                _cons |    8.63516   .0270673   319.03   0.000     8.582107    8.688212
+----------------------+----------------------------------------------------------------
+              sigma_u |  .66004898
+              sigma_e |  .67791568
+                  rho |  .48664874   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(46592, 40505) = 1.27                Prob > F = 0.0000
+
+. eststo model5A_All_FE
+
+. 
+. esttab using Table5_A.rtf, se nostar r2 label
+(output written to Table5_A.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Panel B: Cognitive ability included
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education EWO EW EEWO EEW Job_Control JE JEWO JEW JEWOED JEWED Cognitive_Ability AE
+> WO AEW Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_
+> Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3836                                         min =          1
+     Between = 0.5183                                         avg =        1.8
+     Overall = 0.4609                                         max =          7
+
+                                                Wald chi2(23)     =   62511.07
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+            Education |   .0873989   .0013359    65.42   0.000     .0847806    .0900171
+                  EWO |  -.7932366   .0744149   -10.66   0.000    -.9390872    -.647386
+                   EW |  -.6114428   .0899367    -6.80   0.000    -.7877154   -.4351702
+                 EEWO |   .0357052   .0058592     6.09   0.000     .0242212    .0471891
+                  EEW |   .0325163   .0068436     4.75   0.000     .0191032    .0459294
+          Job_Control |   .0556221   .0172043     3.23   0.001     .0219024    .0893419
+                   JE |   .0007981   .0013194     0.60   0.545    -.0017878     .003384
+                 JEWO |  -.0925832   .0128086    -7.23   0.000    -.1176876   -.0674788
+                  JEW |  -.0782849   .0176923    -4.42   0.000    -.1129612   -.0436087
+               JEWOED |  -.0090267   .0065436    -1.38   0.168    -.0218518    .0037985
+                JEWED |  -.0150214   .0074348    -2.02   0.043    -.0295934   -.0004495
+    Cognitive_Ability |   .0359421   .0033183    10.83   0.000     .0294383    .0424459
+                 AEWO |  -.0327304   .0124238    -2.63   0.008    -.0570807   -.0083802
+                  AEW |   .0254039   .0150135     1.69   0.091    -.0040221    .0548299
+                  Age |   .0165387   .0002288    72.28   0.000     .0160902    .0169871
+               Gender |   .1656851   .0053412    31.02   0.000     .1552165    .1761536
+              Married |   .2284634   .0057266    39.90   0.000     .2172395    .2396873
+              Healthy |  -.0670885   .0087523    -7.67   0.000    -.0842427   -.0499343
+     Education_Father |   .0103088   .0017774     5.80   0.000     .0068251    .0137926
+     Education_Mother |   .0049755   .0018649     2.67   0.008     .0013204    .0086307
+  Living_In_Territory |   .0098438    .001556     6.33   0.000     .0067942    .0128934
+    Born_In_Australia |   .0456641     .00643     7.10   0.000     .0330614    .0582667
+Hours_Worked_Per_Week |   .0317936    .000203   156.59   0.000     .0313957    .0321915
+                _cons |   7.395135   .0234536   315.31   0.000     7.349167    7.441103
+----------------------+----------------------------------------------------------------
+              sigma_u |  .25346866
+              sigma_e |  .63389502
+                  rho |  .13784724   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model5B_All_RE
+
+. 
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income EWO EW EEWO EEW Job_Control JE JEWO JEW JEWOED JEWED Cognitive_Ability AEWO AEW Age
+>  Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Australia Hours_Worked_Per
+> _Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     74,480
+Group variable: hhrpid                          Number of groups  =     41,504
+
+R-squared:                                      Obs per group:
+     Within  = 0.3572                                         min =          1
+     Between = 0.4725                                         avg =        1.8
+     Overall = 0.4202                                         max =          7
+
+                                                F(22, 32954)      =     832.52
+corr(u_i, Xb) = 0.1201                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+                  EWO |  -1.489932   .1098247   -13.57   0.000    -1.705192   -1.274671
+                   EW |  -1.426882   .1369009   -10.42   0.000    -1.695213   -1.158551
+                 EEWO |   .0844318   .0086335     9.78   0.000     .0675097    .1013538
+                  EEW |   .0948687   .0104551     9.07   0.000     .0743764     .115361
+          Job_Control |   .0860531   .0249911     3.44   0.001     .0370696    .1350366
+                   JE |  -.0003318   .0019068    -0.17   0.862    -.0040693    .0034057
+                 JEWO |  -.0747518    .018284    -4.09   0.000    -.1105891   -.0389144
+                  JEW |  -.0900667   .0252407    -3.57   0.000    -.1395393   -.0405941
+               JEWOED |   .0304093   .0087478     3.48   0.001     .0132633    .0475553
+                JEWED |   .0208494    .010161     2.05   0.040     .0009335    .0407652
+    Cognitive_Ability |   .0451317   .0054165     8.33   0.000     .0345152    .0557482
+                 AEWO |  -.0100263   .0185483    -0.54   0.589    -.0463816    .0263291
+                  AEW |   .0307206   .0218335     1.41   0.159    -.0120739    .0735151
+                  Age |   .0115673   .0003527    32.79   0.000     .0108759    .0122587
+               Gender |   .1596435   .0079509    20.08   0.000     .1440594    .1752275
+              Married |   .1770132   .0088578    19.98   0.000     .1596516    .1943748
+              Healthy |  -.1123331   .0125742    -8.93   0.000    -.1369791   -.0876872
+     Education_Father |   .0152381    .002592     5.88   0.000     .0101577    .0203185
+     Education_Mother |   .0182193   .0027123     6.72   0.000      .012903    .0235356
+  Living_In_Territory |   .0197846   .0042105     4.70   0.000     .0115317    .0280374
+    Born_In_Australia |   .0083947   .0093991     0.89   0.372    -.0100278    .0268172
+Hours_Worked_Per_Week |   .0307697   .0003068   100.30   0.000     .0301684    .0313711
+                _cons |   8.736593    .029672   294.44   0.000     8.678435    8.794751
+----------------------+----------------------------------------------------------------
+              sigma_u |  .63258146
+              sigma_e |  .65025547
+                  rho |  .48622533   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(41503, 32954) = 1.24                Prob > F = 0.0000
+
+. eststo model5B_All_FE
+
+. 
+. esttab using Table5_B.rtf, se nostar r2 label
+(output written to Table5_B.rtf)
+
+. 
+. eststo clear
+
+. 
+. //==============================================================
+. 
+. drop if losat == -4 | losat == -3
+(15 observations deleted)
+
+. drop if jbmsall == -4 | jbmsall ==-3
+(24 observations deleted)
+
+. //======================================================
+. 
+. // Table 3
+. 
+. // Panel A: Cognitive ability not included
+. gen AE = Cognitive_Ability*EntrepreneurGroup
+(12,630 missing values generated)
+
+. summarize losat
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       losat |     87,078    7.904224    1.214158          0         10
+
+. scalar mean_losat = r(mean)
+
+. 
+. * Demean the variable 'losat'
+. gen losat_demeaned = losat - mean_losat
+
+. drop losat
+
+. rename losat_demeaned losat
+
+. 
+. gen LS_Edmean = losat * Education_demeaned //3
+
+. gen LS_Entrepreneur = losat * EntrepreneurGroup //4
+
+. gen LS_EntEdmean = losat * EntrepreneurGroup * Education_demeaned //5
+
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur losat LS_Edmean LS_Entre
+> preneur LS_EntEdmean Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Au
+> stralia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     87,078
+Group variable: hhrpid                          Number of groups  =     46,582
+
+R-squared:                                      Obs per group:
+     Within  = 0.3754                                         min =          1
+     Between = 0.4762                                         avg =        1.9
+     Overall = 0.4243                                         max =          7
+
+                                                Wald chi2(16)     =   63405.65
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |    .076669   .0017675    43.38   0.000     .0732048    .0801332
+    EntrepreneurGroup |  -.2959754   .0077378   -38.25   0.000    -.3111412   -.2808096
+EdemeanedEntrepreneur |   .0356327   .0052309     6.81   0.000     .0253804    .0458851
+                losat |  -.0002952   .0022127    -0.13   0.894     -.004632    .0040417
+            LS_Edmean |   .0001798   .0015156     0.12   0.906    -.0027906    .0031503
+      LS_Entrepreneur |   .0657958   .0062258    10.57   0.000     .0535935    .0779982
+         LS_EntEdmean |   .0112948   .0043039     2.62   0.009     .0028593    .0197303
+                  Age |    .017667   .0002197    80.41   0.000     .0172364    .0180976
+               Gender |   .1395012   .0052502    26.57   0.000     .1292111    .1497913
+              Married |   .2728766    .005657    48.24   0.000      .261789    .2839642
+              Healthy |  -.0950265   .0087316   -10.88   0.000      -.11214   -.0779129
+     Education_Father |    .019877   .0017512    11.35   0.000     .0164447    .0233093
+     Education_Mother |    .017393   .0018326     9.49   0.000     .0138011    .0209848
+  Living_In_Territory |   .0077936   .0015887     4.91   0.000     .0046798    .0109075
+    Born_In_Australia |   .0160633   .0063397     2.53   0.011     .0036377     .028489
+Hours_Worked_Per_Week |   .0342531   .0001946   175.97   0.000     .0338716    .0346346
+                _cons |   8.248853   .0178663   461.70   0.000     8.213835     8.28387
+----------------------+----------------------------------------------------------------
+              sigma_u |  .32670764
+              sigma_e |  .66415908
+                  rho |  .19483221   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2A_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur losat LS_Edmean LS_Entre
+> preneur LS_EntEdmean Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_Au
+> stralia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     87,078
+Group variable: hhrpid                          Number of groups  =     46,582
+
+R-squared:                                      Obs per group:
+     Within  = 0.3835                                         min =          1
+     Between = 0.4532                                         avg =        1.9
+     Overall = 0.4127                                         max =          7
+
+                                                F(16, 40480)      =    1573.50
+corr(u_i, Xb) = 0.1268                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0845823   .0018487    45.75   0.000     .0809588    .0882058
+    EntrepreneurGroup |  -.2904506   .0101687   -28.56   0.000    -.3103815   -.2705196
+EdemeanedEntrepreneur |   .0309766   .0060287     5.14   0.000     .0191602     .042793
+                losat |   .0163322   .0030858     5.29   0.000     .0102839    .0223804
+            LS_Edmean |   .0006575   .0017509     0.38   0.707    -.0027743    .0040892
+      LS_Entrepreneur |   .0508024   .0083263     6.10   0.000     .0344826    .0671222
+         LS_EntEdmean |   .0086065   .0049921     1.72   0.085    -.0011782    .0183913
+                  Age |   .0116333   .0003149    36.94   0.000     .0110162    .0122505
+               Gender |   .1837737   .0072671    25.29   0.000     .1695299    .1980175
+              Married |   .1641073   .0081369    20.17   0.000     .1481588    .1800558
+              Healthy |  -.0878758   .0117122    -7.50   0.000     -.110832   -.0649197
+     Education_Father |   .0092005   .0023759     3.87   0.000     .0045437    .0138572
+     Education_Mother |   .0020888   .0025054     0.83   0.404    -.0028217    .0069994
+  Living_In_Territory |   .0158498   .0036074     4.39   0.000     .0087792    .0229204
+    Born_In_Australia |   .0520693   .0086347     6.03   0.000     .0351452    .0689935
+Hours_Worked_Per_Week |   .0313051   .0002741   114.22   0.000     .0307679    .0318423
+                _cons |   8.727359   .0266003   328.09   0.000     8.675222    8.779496
+----------------------+----------------------------------------------------------------
+              sigma_u |  .67303818
+              sigma_e |  .66415908
+                  rho |  .50663979   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(46581, 40480) = 1.37                Prob > F = 0.0000
+
+. eststo model2A_All_FE
+
+. 
+. esttab using Table3_A_LifeSatisfaction.rtf, se nostar r2 label
+(output written to Table3_A_LifeSatisfaction.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Panel B: Cognitive ability included
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur losat LS_Edmean LS_Entre
+> preneur LS_EntEdmean Cognitive_Ability AE Age Gender Married Healthy Education_Father Education_Mother Living_In
+> _Territory Born_In_Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     74,448
+Group variable: hhrpid                          Number of groups  =     41,496
+
+R-squared:                                      Obs per group:
+     Within  = 0.3755                                         min =          1
+     Between = 0.4812                                         avg =        1.8
+     Overall = 0.4293                                         max =          7
+
+                                                Wald chi2(18)     =   55375.68
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0751349   .0018275    41.11   0.000     .0715532    .0787167
+    EntrepreneurGroup |   -.306888    .008047   -38.14   0.000    -.3226598   -.2911162
+EdemeanedEntrepreneur |    .040739   .0054443     7.48   0.000     .0300684    .0514097
+                losat |   .0003006    .002323     0.13   0.897    -.0042525    .0048536
+            LS_Edmean |   .0007075   .0015917     0.44   0.657    -.0024121    .0038271
+      LS_Entrepreneur |   .0683134   .0066715    10.24   0.000     .0552374    .0813893
+         LS_EntEdmean |   .0120511   .0046487     2.59   0.010     .0029399    .0211624
+    Cognitive_Ability |   .0372561   .0034067    10.94   0.000     .0305792    .0439331
+                   AE |  -.0010666   .0100488    -0.11   0.915     -.020762    .0186287
+                  Age |   .0178716   .0002338    76.43   0.000     .0174133    .0183299
+               Gender |   .1511769   .0054419    27.78   0.000      .140511    .1618429
+              Married |   .2590448   .0058909    43.97   0.000     .2474988    .2705909
+              Healthy |  -.0881661   .0091571    -9.63   0.000    -.1061137   -.0702186
+     Education_Father |   .0180381   .0018167     9.93   0.000     .0144775    .0215987
+     Education_Mother |   .0185882    .001896     9.80   0.000     .0148721    .0223043
+  Living_In_Territory |   .0074648   .0016239     4.60   0.000      .004282    .0106476
+    Born_In_Australia |   .0147288   .0065683     2.24   0.025     .0018551    .0276024
+Hours_Worked_Per_Week |   .0333347   .0002062   161.70   0.000     .0329307    .0337388
+                _cons |   8.329266   .0187356   444.57   0.000     8.292545    8.365987
+----------------------+----------------------------------------------------------------
+              sigma_u |  .29792629
+              sigma_e |  .63619125
+                  rho |  .17985854   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2B_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur losat LS_Edmean LS_Entre
+> preneur LS_EntEdmean Cognitive_Ability AE Age Gender Married Healthy Education_Father Education_Mother Living_In
+> _Territory Born_In_Australia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     74,448
+Group variable: hhrpid                          Number of groups  =     41,496
+
+R-squared:                                      Obs per group:
+     Within  = 0.3845                                         min =          1
+     Between = 0.4563                                         avg =        1.8
+     Overall = 0.4165                                         max =          7
+
+                                                F(18, 32934)      =    1143.08
+corr(u_i, Xb) = 0.1250                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0833172    .001969    42.31   0.000     .0794579    .0871765
+    EntrepreneurGroup |  -.2997513   .0109155   -27.46   0.000     -.321146   -.2783566
+EdemeanedEntrepreneur |   .0342543   .0065109     5.26   0.000     .0214927     .047016
+                losat |   .0138705   .0033296     4.17   0.000     .0073444    .0203967
+            LS_Edmean |    .001181   .0019017     0.62   0.535    -.0025465    .0049085
+      LS_Entrepreneur |    .052759   .0091856     5.74   0.000      .034755    .0707631
+         LS_EntEdmean |   .0110191   .0056384     1.95   0.051    -.0000324    .0220705
+    Cognitive_Ability |   .0534462   .0052985    10.09   0.000      .043061    .0638314
+                   AE |  -.0023086   .0142561    -0.16   0.871    -.0302511    .0256339
+                  Age |    .011543   .0003447    33.49   0.000     .0108674    .0122185
+               Gender |   .1942055   .0077788    24.97   0.000     .1789588    .2094522
+              Married |   .1505858   .0087538    17.20   0.000     .1334281    .1677435
+              Healthy |  -.0903885   .0126099    -7.17   0.000    -.1151043   -.0656727
+     Education_Father |   .0070292   .0025454     2.76   0.006     .0020401    .0120183
+     Education_Mother |   .0019874   .0026825     0.74   0.459    -.0032703    .0072451
+  Living_In_Territory |   .0156806   .0041204     3.81   0.000     .0076045    .0237567
+    Born_In_Australia |   .0508877   .0092447     5.50   0.000     .0327677    .0690077
+Hours_Worked_Per_Week |   .0304634   .0002992   101.83   0.000      .029877    .0310498
+                _cons |   8.825783   .0291085   303.20   0.000      8.76873    8.882837
+----------------------+----------------------------------------------------------------
+              sigma_u |  .64378436
+              sigma_e |  .63619125
+                  rho |  .50593202   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(41495, 32934) = 1.33                Prob > F = 0.0000
+
+. eststo model2B_All_FE
+
+. 
+. esttab using Table3_B_LifeSatisfaction.rtf, se nostar r2 label
+(output written to Table3_B_LifeSatisfaction.rtf)
+
+. 
+. eststo clear
+
+. 
+. //====================================================
+. // Panel A: Cognitive ability not included
+. // Summarize jbmsall
+. summarize jbmsall
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     jbmsall |     87,078    7.635752    1.581467          0         10
+
+. scalar mean_jbmsall = r(mean)
+
+. 
+. // Demean the variable 'jbmsall'
+. gen jbmsall_demeaned = jbmsall - mean_jbmsall
+
+. drop jbmsall
+
+. rename jbmsall_demeaned jbmsall
+
+. 
+. gen JS_Edmean = jbmsall * Education_demeaned //3
+
+. gen JS_Entrepreneur = jbmsall * EntrepreneurGroup //4
+
+. gen JS_EntEdmean = jbmsall * EntrepreneurGroup * Education_demeaned //5
+
+. 
+. 
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur jbmsall JS_Edmean JS_Ent
+> repreneur JS_EntEdmean Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_
+> Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     87,078
+Group variable: hhrpid                          Number of groups  =     46,582
+
+R-squared:                                      Obs per group:
+     Within  = 0.3761                                         min =          1
+     Between = 0.4763                                         avg =        1.9
+     Overall = 0.4247                                         max =          7
+
+                                                Wald chi2(16)     =   63510.01
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0767737   .0017661    43.47   0.000     .0733122    .0802352
+    EntrepreneurGroup |  -.3065805   .0077803   -39.40   0.000    -.3218297   -.2913313
+EdemeanedEntrepreneur |   .0331537   .0052842     6.27   0.000     .0227968    .0435107
+              jbmsall |   .0044125   .0016472     2.68   0.007      .001184    .0076409
+            JS_Edmean |   .0011894   .0011615     1.02   0.306    -.0010871     .003466
+      JS_Entrepreneur |   .0604841   .0050516    11.97   0.000     .0505832     .070385
+         JS_EntEdmean |   .0055762   .0035121     1.59   0.112    -.0013073    .0124596
+                  Age |   .0176077   .0002198    80.11   0.000      .017177    .0180385
+               Gender |   .1408172   .0052504    26.82   0.000     .1305266    .1511079
+              Married |   .2737075   .0056188    48.71   0.000     .2626949    .2847201
+              Healthy |  -.0954971   .0085637   -11.15   0.000    -.1122817   -.0787125
+     Education_Father |   .0198325   .0017505    11.33   0.000     .0164017    .0232633
+     Education_Mother |   .0174566   .0018317     9.53   0.000     .0138666    .0210466
+  Living_In_Territory |   .0077057   .0015885     4.85   0.000     .0045923    .0108192
+    Born_In_Australia |   .0144386   .0063369     2.28   0.023     .0020186    .0268587
+Hours_Worked_Per_Week |   .0342625   .0001944   176.27   0.000     .0338815    .0346434
+                _cons |   8.251222   .0178605   461.98   0.000     8.216216    8.286228
+----------------------+----------------------------------------------------------------
+              sigma_u |  .32696842
+              sigma_e |  .66397194
+                  rho |  .19517118   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2A_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur jbmsall JS_Edmean JS_Ent
+> repreneur JS_EntEdmean Age Gender Married Healthy Education_Father Education_Mother Living_In_Territory Born_In_
+> Australia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     87,078
+Group variable: hhrpid                          Number of groups  =     46,582
+
+R-squared:                                      Obs per group:
+     Within  = 0.3838                                         min =          1
+     Between = 0.4545                                         avg =        1.9
+     Overall = 0.4137                                         max =          7
+
+                                                F(16, 40480)      =    1575.82
+corr(u_i, Xb) = 0.1267                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0846244   .0018478    45.80   0.000     .0810026    .0882461
+    EntrepreneurGroup |   -.300203    .010219   -29.38   0.000    -.3202324   -.2801735
+EdemeanedEntrepreneur |   .0286242   .0060924     4.70   0.000     .0166829    .0405655
+              jbmsall |   .0107192   .0022865     4.69   0.000     .0062377    .0152007
+            JS_Edmean |    .001506   .0013432     1.12   0.262    -.0011268    .0041388
+      JS_Entrepreneur |   .0525597   .0066452     7.91   0.000      .039535    .0655845
+         JS_EntEdmean |   .0029642   .0040756     0.73   0.467    -.0050241    .0109525
+                  Age |   .0115335   .0003153    36.58   0.000     .0109156    .0121514
+               Gender |   .1855973   .0072694    25.53   0.000     .1713491    .1998454
+              Married |   .1701626   .0080669    21.09   0.000     .1543512    .1859739
+              Healthy |  -.0992469   .0114673    -8.65   0.000     -.121723   -.0767707
+     Education_Father |   .0092519   .0023751     3.90   0.000     .0045967    .0139071
+     Education_Mother |    .002421   .0025044     0.97   0.334    -.0024877    .0073297
+  Living_In_Territory |   .0162298   .0036061     4.50   0.000     .0091617    .0232979
+    Born_In_Australia |    .050784   .0086317     5.88   0.000     .0338657    .0677024
+Hours_Worked_Per_Week |    .031275   .0002739   114.19   0.000     .0307382    .0318118
+                _cons |   8.726843   .0265924   328.17   0.000     8.674722    8.778965
+----------------------+----------------------------------------------------------------
+              sigma_u |  .67216767
+              sigma_e |  .66397194
+                  rho |  .50613365   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(46581, 40480) = 1.37                Prob > F = 0.0000
+
+. eststo model2A_All_FE
+
+. 
+. esttab using Table3_A_JobSatisfaction.rtf, se nostar r2 label
+(output written to Table3_A_JobSatisfaction.rtf)
+
+. 
+. eststo clear
+
+. 
+. // Panel B: Cognitive ability included
+. 
+. // All (RE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur jbmsall JS_Edmean JS_Ent
+> repreneur JS_EntEdmean Cognitive_Ability AE Age Gender Married Healthy Education_Father Education_Mother Living_
+> In_Territory Born_In_Australia Hours_Worked_Per_Week, re
+
+Random-effects GLS regression                   Number of obs     =     74,448
+Group variable: hhrpid                          Number of groups  =     41,496
+
+R-squared:                                      Obs per group:
+     Within  = 0.3761                                         min =          1
+     Between = 0.4814                                         avg =        1.8
+     Overall = 0.4296                                         max =          7
+
+                                                Wald chi2(18)     =   55451.88
+corr(u_i, X) = 0 (assumed)                      Prob > chi2       =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0752541   .0018267    41.20   0.000     .0716738    .0788344
+    EntrepreneurGroup |  -.3179786   .0081074   -39.22   0.000    -.3338689   -.3020884
+EdemeanedEntrepreneur |   .0370037   .0055396     6.68   0.000     .0261462    .0478612
+              jbmsall |   .0050205   .0017221     2.92   0.004     .0016452    .0083957
+            JS_Edmean |   .0014967   .0012067     1.24   0.215    -.0008684    .0038619
+      JS_Entrepreneur |   .0594819   .0054032    11.01   0.000     .0488918    .0700721
+         JS_EntEdmean |     .00739   .0038212     1.93   0.053    -.0000995    .0148794
+    Cognitive_Ability |   .0372675   .0034053    10.94   0.000     .0305932    .0439418
+                   AE |  -.0018798   .0100432    -0.19   0.852    -.0215642    .0178046
+                  Age |   .0178017   .0002338    76.13   0.000     .0173434      .01826
+               Gender |   .1524829   .0054425    28.02   0.000     .1418158      .16315
+              Married |   .2602494   .0058493    44.49   0.000      .248785    .2717137
+              Healthy |  -.0885567   .0089915    -9.85   0.000    -.1061798   -.0709337
+     Education_Father |   .0180179   .0018158     9.92   0.000      .014459    .0215769
+     Education_Mother |   .0186452    .001895     9.84   0.000      .014931    .0223594
+  Living_In_Territory |   .0072918   .0016236     4.49   0.000     .0041095    .0104741
+    Born_In_Australia |   .0131863   .0065662     2.01   0.045     .0003167    .0260559
+Hours_Worked_Per_Week |   .0333417   .0002059   161.92   0.000     .0329381    .0337452
+                _cons |    8.33196   .0187304   444.84   0.000     8.295249    8.368671
+----------------------+----------------------------------------------------------------
+              sigma_u |   .2979911
+              sigma_e |  .63605201
+                  rho |  .17998731   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+
+. eststo model2B_All_RE
+
+. 
+. // All (FE)
+. xtreg Log_Gross_Labor_Income Education_demeaned EntrepreneurGroup EdemeanedEntrepreneur jbmsall JS_Edmean JS_Ent
+> repreneur JS_EntEdmean Cognitive_Ability AE Age Gender Married Healthy Education_Father Education_Mother Living_
+> In_Territory Born_In_Australia Hours_Worked_Per_Week, fe
+
+Fixed-effects (within) regression               Number of obs     =     74,448
+Group variable: hhrpid                          Number of groups  =     41,496
+
+R-squared:                                      Obs per group:
+     Within  = 0.3848                                         min =          1
+     Between = 0.4574                                         avg =        1.8
+     Overall = 0.4172                                         max =          7
+
+                                                F(18, 32934)      =    1144.38
+corr(u_i, Xb) = 0.1250                          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------------
+Log_Gross_Labor_Inc~e | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------------+----------------------------------------------------------------
+   Education_demeaned |   .0833285   .0019689    42.32   0.000     .0794693    .0871877
+    EntrepreneurGroup |  -.3100812   .0109943   -28.20   0.000    -.3316305   -.2885319
+EdemeanedEntrepreneur |   .0306394   .0066259     4.62   0.000     .0176525    .0436264
+              jbmsall |   .0088388   .0024548     3.60   0.000     .0040273    .0136504
+            JS_Edmean |   .0008095   .0014398     0.56   0.574    -.0020127    .0036316
+      JS_Entrepreneur |   .0529104   .0073381     7.21   0.000     .0385275    .0672932
+         JS_EntEdmean |   .0081107   .0045964     1.76   0.078    -.0008984    .0171199
+    Cognitive_Ability |   .0536342   .0052968    10.13   0.000     .0432523    .0640162
+                   AE |  -.0025167    .014243    -0.18   0.860    -.0304336    .0254002
+                  Age |   .0114334    .000345    33.14   0.000     .0107571    .0121096
+               Gender |   .1959871   .0077816    25.19   0.000     .1807349    .2112393
+              Married |   .1560416   .0086788    17.98   0.000     .1390309    .1730524
+              Healthy |   -.099721   .0123581    -8.07   0.000    -.1239432   -.0754987
+     Education_Father |   .0069752   .0025443     2.74   0.006     .0019884    .0119621
+     Education_Mother |   .0023008   .0026816     0.86   0.391    -.0029551    .0075568
+  Living_In_Territory |   .0158286   .0041194     3.84   0.000     .0077543    .0239028
+    Born_In_Australia |   .0498645   .0092441     5.39   0.000     .0317457    .0679834
+Hours_Worked_Per_Week |   .0304277    .000299   101.77   0.000     .0298417    .0310137
+                _cons |   8.826998   .0290998   303.34   0.000     8.769962    8.884035
+----------------------+----------------------------------------------------------------
+              sigma_u |  .64313329
+              sigma_e |  .63605201
+                  rho |   .5055356   (fraction of variance due to u_i)
+---------------------------------------------------------------------------------------
+F test that all u_i=0: F(41495, 32934) = 1.33                Prob > F = 0.0000
+
+. eststo model2B_All_FE
+
+. 
+. esttab using Table3_B_JobSatisfaction.rtf, se nostar r2 label
+(output written to Table3_B_JobSatisfaction.rtf)
+
+. 
+. eststo clear
+
+. 
+. // ====================================================
+. // Postscript
+. // ====================================================
+. log close       // close log-file
+      name:  <unnamed>
+       log:  C:\new_data\hessels_replication_extension_fin.log
+  log type:  text
+ closed on:  27 May 2024, 08:34:28
+------------------------------------------------------------------------------------------------------------------
